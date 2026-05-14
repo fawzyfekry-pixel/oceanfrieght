@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M Logistics — Freight Quotation Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1e35;
+    --navy-mid: #1a2f4a;
+    --navy-light: #243d5e;
+    --accent: #e84c3d;
+    --accent2: #f5a623;
+    --white: #ffffff;
+    --off-white: #f4f6f9;
+    --text: #1a2233;
+    --muted: #6b7a8d;
+    --border: #dce3ed;
+    --success: #27ae60;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--navy);
+    min-height: 100vh;
+    color: var(--white);
+  }
+
+  /* ── SHELL ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--navy-mid);
+    border-right: 1px solid rgba(255,255,255,0.07);
+    padding: 32px 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: white;
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    color: white;
+  }
+  .logo-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .section-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .nav-item.active {
+    background: rgba(232,76,61,0.15);
+    color: white;
+    border-color: rgba(232,76,61,0.3);
+  }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+  .nav-item.active .nav-dot { background: var(--accent); }
+  .nav-item.done .nav-dot { background: var(--success); }
+  .nav-item.done { color: rgba(255,255,255,0.7); }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .sales-badge {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .sales-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+  .sales-name { font-size: 14px; font-weight: 600; color: white; }
+  .sales-email { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── MAIN ── */
+  .main {
+    background: var(--off-white);
+    padding: 40px 48px;
+    color: var(--text);
+  }
+
+  .page-header {
+    margin-bottom: 36px;
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+  .step-section {
+    display: none;
+  }
+  .step-section.active { display: block; }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 28px 32px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.cols-1 { grid-template-columns: 1fr; }
+  .span-2 { grid-column: span 2; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field input, .field select, .field textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,76,61,0.08);
+  }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* ── FREIGHT ROWS TABLE ── */
+  .rates-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .rates-table th {
+    background: var(--navy);
+    color: rgba(255,255,255,0.7);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .rates-table th:first-child { border-radius: 8px 0 0 0; }
+  .rates-table th:last-child { border-radius: 0 8px 0 0; }
+  .rates-table td {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .rates-table td input, .rates-table td select {
+    border: none;
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+    padding: 10px 10px;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    width: 100%;
+    outline: none;
+  }
+  .rates-table td input:focus, .rates-table td select:focus {
+    background: rgba(232,76,61,0.04);
+  }
+  .rates-table td:last-child input { border-right: none; }
+  .rates-table .total-row td {
+    background: #f8fafd;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 12px;
+    color: var(--navy);
+  }
+
+  .add-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    width: 100%;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .add-row-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,76,61,0.03); }
+
+  .del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    padding: 0 8px;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+  .del-btn:hover { color: var(--accent); }
+
+  /* ── TOGGLE BUTTONS ── */
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toggle-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .toggle-btn.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
+  }
+
+  /* ── ACTIONS ── */
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    align-items: center;
+  }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    transition: all 0.2s;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 14px rgba(232,76,61,0.3);
+  }
+  .btn-primary:hover { background: #c93d30; transform: translateY(-1px); }
+  .btn-secondary {
+    background: white;
+    color: var(--navy);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--navy); }
+  .btn-ghost { background: none; color: var(--muted); padding: 12px 16px; }
+  .btn-ghost:hover { color: var(--text); }
+
+  .btn-generate {
+    background: var(--navy);
+    color: white;
+    box-shadow: 0 4px 14px rgba(15,30,53,0.25);
+    padding: 14px 32px;
+    font-size: 15px;
+  }
+  .btn-generate:hover { background: var(--navy-mid); transform: translateY(-1px); }
+
+  /* ── IMO BADGE ── */
+  .imo-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    background: #fff8f0;
+    border: 1.5px solid #f5a623;
+  }
+  .imo-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .imo-sub { font-size: 12px; color: var(--muted); }
+
+  /* ── PREVIEW AREA ── */
+  #preview-section {
+    display: none;
+  }
+  #preview-section.active { display: block; }
+
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    background: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .preview-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--navy); }
+
+  /* ── PDF PREVIEW ── */
+  #pdf-preview {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: #1a2233;
+  }
+
+  .pdf-header {
+    background: var(--navy);
+    padding: 24px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .pdf-logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .pdf-logo-mark {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: white;
+  }
+  .pdf-logo-txt { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; letter-spacing: 0.05em; }
+  .pdf-doc-type { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px; }
+  .pdf-dates { text-align: right; }
+  .pdf-dates p { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.7; font-family: 'IBM Plex Mono', monospace; }
+  .pdf-dates span { color: white; font-weight: 500; }
+
+  .pdf-body { padding: 28px 36px; }
+
+  .pdf-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .pdf-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    background: #f8fafd;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .pdf-info-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 4px; }
+  .pdf-info-item span { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .pdf-info-item .sub { font-size: 12px; font-weight: 400; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  .pdf-route {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    background: var(--navy);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .pdf-port { text-align: center; }
+  .pdf-port-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+  .pdf-port-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: white; }
+  .pdf-port-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .route-arrow { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .arrow-line { flex: 1; height: 1px; background: rgba(255,255,255,0.2); }
+  .arrow-ship { font-size: 20px; }
+
+  .cargo-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .cargo-tag {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid;
+  }
+  .cargo-tag.incoterms { background: #e8f4fd; border-color: #b8d9f5; color: #1a6fa6; }
+  .cargo-tag.hs { background: #f0faf0; border-color: #b5deb5; color: #1d7a2f; font-family: 'IBM Plex Mono', monospace; }
+  .cargo-tag.imo { background: #fff3cd; border-color: #f5d78e; color: #8a5e00; }
+  .cargo-tag.container { background: #f3edff; border-color: #c8b8f5; color: #5a2da6; }
+
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pdf-table th {
+    background: var(--navy);
+    color: rgba(255,255,255,0.75);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .pdf-table td { padding: 10px 14px; border-bottom: 1px solid #edf0f5; color: var(--text); }
+  .pdf-table tr:last-child td { border-bottom: none; }
+  .pdf-table tr:nth-child(even) td { background: #fafbfd; }
+  .pdf-table .total-row td {
+    background: #f0f4ff;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--navy);
+    border-top: 2px solid var(--navy);
+  }
+  .pdf-table .amount { text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+
+  .section-header-bar {
+    background: linear-gradient(90deg, var(--navy-light), var(--navy-mid));
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: -1px;
+  }
+
+  .pdf-notes {
+    background: #fffbf0;
+    border: 1px solid #f5e4b0;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 20px;
+  }
+  .pdf-notes-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8a6f00; margin-bottom: 10px; }
+  .pdf-notes ul { padding-left: 16px; }
+  .pdf-notes li { font-size: 12px; color: #5a4a00; line-height: 1.8; }
+
+  .pdf-footer {
+    background: var(--navy);
+    padding: 16px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pdf-footer-text { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'IBM Plex Mono', monospace; }
+  .pdf-footer-name { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
+
+  /* Print */
+  @media print {
+    body { background: white !important; }
+    .shell { display: block !important; }
+    .sidebar, .page-header, .step-section, .preview-toolbar { display: none !important; }
+    .main { padding: 0 !important; background: white !important; }
+    #preview-section { display: block !important; }
+    #pdf-preview { box-shadow: none !important; border-radius: 0 !important; }
+  }
+
+  
+  /* LOGIN SCREEN */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,30,53,0.98);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .login-card {
+    width: 360px;
+    background: white;
+    padding: 32px;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+
+  .login-card h2 {
+    margin-bottom: 20px;
+    color: #0f1e35;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .login-card input {
+    width: 100%;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #dce3ed;
+    font-size: 14px;
+  }
+
+  .login-card button {
+    width: 100%;
+    background: #e84c3d;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .topbar {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #dce3ed;
+  }
+
+  .topbar button {
+    border: none;
+    background: #0f1e35;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 24px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+// ── ENHANCED FEATURES ──
+
+function downloadPDF() {
+  const element = document.getElementById('pdf-preview');
+
+  const opt = {
+    margin: 0.3,
+    filename: `Quotation-${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      unit: 'in',
+      format: 'a4',
+      orientation: 'portrait'
+    }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+function saveDraft() {
+  const data = {
+    clientName: document.getElementById('client-name')?.value || '',
+    clientEmail: document.getElementById('client-email')?.value || '',
+    pol: document.getElementById('pol')?.value || '',
+    pod: document.getElementById('pod')?.value || '',
+    salesName: document.getElementById('sales-name')?.value || '',
+    seaRows,
+    truckRows,
+    notes
+  };
+
+  localStorage.setItem('quotationDraft', JSON.stringify(data));
+}
+
+function loadDraft() {
+  const saved = localStorage.getItem('quotationDraft');
+
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+
+  if(document.getElementById('client-name')) {
+    document.getElementById('client-name').value = data.clientName || '';
+    document.getElementById('client-email').value = data.clientEmail || '';
+    document.getElementById('pol').value = data.pol || '';
+    document.getElementById('pod').value = data.pod || '';
+    document.getElementById('sales-name').value = data.salesName || '';
+  }
+
+  seaRows = data.seaRows || seaRows;
+  truckRows = data.truckRows || truckRows;
+  notes = data.notes || notes;
+
+  renderSeaRows();
+  renderTruckRows();
+  renderNotes();
+  updateSales();
+}
+
+function login() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  if(email && password) {
+    localStorage.setItem('loggedIn', 'true');
+    document.getElementById('login-screen').style.display = 'none';
+  } else {
+    alert('Please enter email and password');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('loggedIn');
+  location.reload();
+}
+
+function newQuotation() {
+  if(confirm('Start a new quotation?')) {
+    localStorage.removeItem('quotationDraft');
+    location.reload();
+  }
+}
+
+const originalUpdate = update;
+update = function() {
+  originalUpdate();
+  saveDraft();
+};
+
+window.addEventListener('load', () => {
+  const logged = localStorage.getItem('loggedIn');
+
+  if(logged === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+  }
+
+  loadDraft();
+});
+
+</script>
+</head>
+
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h2>M Logistics Team Login</h2>
+    <input type="email" id="login-email" placeholder="Team Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div><strong>M Logistics Dashboard</strong></div>
+  <div>
+    <button onclick="newQuotation()">+ New Quotation</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">M</div>
+      <div>
+        <div class="logo-text">LOGISTICS</div>
+        <span class="logo-sub">Quotation Builder</span>
+      </div>
+    </div>
+
+    <nav class="section-nav">
+      <div class="nav-label">Steps</div>
+      <div class="nav-item active" onclick="goTo(0)" id="nav-0">
+        <div class="nav-dot"></div> Client & Sales Info
+      </div>
+      <div class="nav-item" onclick="goTo(1)" id="nav-1">
+        <div class="nav-dot"></div> Route & Cargo
+      </div>
+      <div class="nav-item" onclick="goTo(2)" id="nav-2">
+        <div class="nav-dot"></div> Sea Freight Rates
+      </div>
+      <div class="nav-item" onclick="goTo(3)" id="nav-3">
+        <div class="nav-dot"></div> Trucking Rates
+      </div>
+      <div class="nav-item" onclick="goTo(4)" id="nav-4">
+        <div class="nav-dot"></div> Terms & Notes
+      </div>
+      <div class="nav-item" onclick="goTo(5)" id="nav-5">
+        <div class="nav-dot"></div> Preview & Export
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sales-badge">
+        <div class="sales-label">Current Sales Rep</div>
+        <div class="sales-name" id="sidebar-name">—</div>
+        <div class="sales-email" id="sidebar-email">—</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header" id="main-header">
+      <div class="page-title" id="step-title">Client & Sales Info</div>
+      <div class="page-subtitle" id="step-sub">Start by entering your client and team member details</div>
+    </div>
+
+    <!-- STEP 0: CLIENT & SALES -->
+    <div class="step-section active" id="step-0">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">👤</div> Client Information</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Client / Company Name</label>
+            <input type="text" id="client-name" placeholder="Al Malaz for export and import" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Contact Person</label>
+            <input type="text" id="client-contact" placeholder="Alaa" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="client-email" placeholder="client@email.com" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" id="client-phone" placeholder="+20 1000000000" oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">🧑‍💼</div> Sales Representative</div>
+        <div class="form-grid cols-3">
+          <div class="field">
+            <label>Sales Rep Name</label>
+            <input type="text" id="sales-name" placeholder="Your name" oninput="updateSales()">
+          </div>
+          <div class="field">
+            <label>Sales Email</label>
+            <input type="email" id="sales-email" placeholder="you@mlogistics.uk" oninput="updateSales()">
+          </div>
+          <div class="field">
+            <label>Sales Phone</label>
+            <input type="text" id="sales-phone" placeholder="+44 ..." oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">📅</div> Quotation Dates</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Quotation Date</label>
+            <input type="date" id="q-date" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Valid Until</label>
+            <input type="date" id="q-valid" oninput="update()">
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="goTo(1)">Continue → Route & Cargo</button>
+      </div>
+    </div>
+
+    <!-- STEP 1: ROUTE & CARGO -->
+    <div class="step-section" id="step-1">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">🚢</div> Shipping Route</div>
+        <div class="form-grid cols-3">
+          <div class="field">
+            <label>Port of Loading (POL)</label>
+            <input type="text" id="pol" placeholder="Alexandria" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Port of Discharge (POD)</label>
+            <input type="text" id="pod" placeholder="New York" oninput="update()">
+          </div>
+          <div class="field">
+            <label>Incoterms</label>
+            <select id="incoterms" onchange="update()">
+              <option value="">Select...</option>
+              <option value="EXW">EXW — Ex Works</option>
+              <option value="FCA">FCA — Free Carrier</option>
+              <option value="FAS">FAS — Free Alongside Ship</option>
+              <option value="FOB">FOB — Free On Board</option>
+              <option value="CFR">CFR — Cost & Freight</option>
+              <option value="CIF">CIF — Cost, Insurance & Freight</option>
+              <option value="CPT">CPT — Carriage Paid To</option>
+              <option value="CIP">CIP — Carriage & Insurance Paid</option>
+              <option value="DAP">DAP — Delivered At Place</option>
+              <option value="DPU">DPU — Delivered At Place Unloaded</option>
+              <option value="DDP">DDP — Delivered Duty Paid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">📦</div> Cargo Details</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Commodity / Cargo Description</label>
+            <input type="text" id="commodity" placeholder="e.g. General Cargo, Electronics, Textiles..." oninput="update()">
+          </div>
+          <div class="field">
+            <label>HS Code</label>
+            <input type="text" id="hs-code" placeholder="e.g. 6204.62.90" oninput="update()">
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div class="field" style="margin-bottom: 12px;">
+            <label>Container Types</label>
+            <div class="toggle-group" id="container-types">
+              <button class="toggle-btn active" onclick="toggleContainer(this)" data-val="20DV">20' DV</button>
+              <button class="toggle-btn active" onclick="toggleContainer(this)" data-val="40HQ">40' HQ</button>
+              <button class="toggle-btn" onclick="toggleContainer(this)" data-val="40DV">40' DV</button>
+              <button class="toggle-btn" onclick="toggleContainer(this)" data-val="45HQ">45' HQ</button>
+              <button class="toggle-btn" onclick="toggleContainer(this)" data-val="20RF">20' RF</button>
+              <button class="toggle-btn" onclick="toggleContainer(this)" data-val="40RF">40' RF</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="imo-section" style="margin-top: 16px;">
+          <div>
+            <div class="imo-label">⚠️ IMO / Dangerous Goods?</div>
+            <div class="imo-sub">Is this cargo classified as hazardous material?</div>
+          </div>
+          <div class="toggle-group" style="margin-left: auto;">
+            <button class="toggle-btn" id="imo-no" onclick="setImo(false)" style="background:white;border-color:#dce3ed;color:#6b7a8d">Not IMO</button>
+            <button class="toggle-btn" id="imo-yes" onclick="setImo(true)">IMO / DG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Continue → Sea Freight</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: SEA FREIGHT RATES -->
+    <div class="step-section" id="step-2">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">🌊</div> Sea Freight Rates</div>
+        <div style="overflow-x:auto;">
+          <table class="rates-table" id="sea-table">
+            <thead>
+              <tr>
+                <th style="width:24%">Charge Description</th>
+                <th style="width:18%">Basis</th>
+                <th style="width:14%">Rate</th>
+                <th style="width:12%">Currency</th>
+                <th style="width:24%">Notes</th>
+                <th style="width:8%"></th>
+              </tr>
+            </thead>
+            <tbody id="sea-rows">
+            </tbody>
+          </table>
+        </div>
+        <button class="add-row-btn" onclick="addSeaRow()">+ Add Charge</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Continue → Trucking</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: TRUCKING RATES -->
+    <div class="step-section" id="step-3">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">🚛</div> Trucking / Inland Rates</div>
+        <div style="overflow-x:auto;">
+          <table class="rates-table" id="truck-table">
+            <thead>
+              <tr>
+                <th style="width:28%">Charge Description</th>
+                <th style="width:18%">Container Type</th>
+                <th style="width:18%">Rate</th>
+                <th style="width:14%">Currency</th>
+                <th style="width:14%">Notes</th>
+                <th style="width:8%"></th>
+              </tr>
+            </thead>
+            <tbody id="truck-rows">
+            </tbody>
+          </table>
+        </div>
+        <button class="add-row-btn" onclick="addTruckRow()">+ Add Trucking Rate</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Continue → Terms</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: TERMS & NOTES -->
+    <div class="step-section" id="step-4">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">📋</div> Terms & Conditions</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">These will appear in the Notes section of the PDF. Default terms are pre-filled below.</p>
+        <div id="notes-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <button class="add-row-btn" onclick="addNote()" style="margin-top:10px;">+ Add Note</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-generate" onclick="goTo(5)">🖨 Generate Quotation PDF</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: PREVIEW -->
+    <div class="step-section" id="step-5" style="display:none">
+      <div class="preview-toolbar">
+        <div class="preview-title">📄 Quotation Preview</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-secondary" onclick="goTo(4)" style="padding:8px 18px;font-size:13px;">← Edit</button>
+          <button class="btn btn-primary" onclick="downloadPDF()" style="padding:8px 18px;font-size:13px;">⬇ Download PDF</button>
+        </div>
+      </div>
+      <div id="pdf-preview"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── STATE ──
+let imoFlag = false;
+let selectedContainers = ['20DV','40HQ'];
+
+const steps = [
+  { title: 'Client & Sales Info', sub: 'Start by entering your client and team member details' },
+  { title: 'Route & Cargo', sub: 'Define the shipping route, incoterms, HS code, and cargo nature' },
+  { title: 'Sea Freight Rates', sub: 'Enter ocean freight, OTHC, B/L, and any other sea charges' },
+  { title: 'Trucking Rates', sub: 'Add inland haulage / origin trucking costs' },
+  { title: 'Terms & Notes', sub: 'Specify validity conditions and any additional notes' },
+  { title: 'Preview & Export', sub: 'Review and print or save as PDF' }
+];
+
+let currentStep = 0;
+
+function goTo(n) {
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  if (currentStep === 5) document.getElementById('step-5').style.display = 'none';
+  document.getElementById('nav-' + currentStep).classList.remove('active');
+
+  currentStep = n;
+
+  if (n < 5) {
+    document.getElementById('step-' + n).classList.add('active');
+    document.getElementById('step-' + n).style.display = '';
+    document.getElementById('main-header').style.display = '';
+  } else {
+    document.getElementById('step-5').style.display = 'block';
+    document.getElementById('step-5').classList.add('active');
+    document.getElementById('main-header').style.display = 'none';
+    buildPreview();
+  }
+
+  document.getElementById('nav-' + n).classList.add('active');
+  document.getElementById('step-title').textContent = steps[n].title;
+  document.getElementById('step-sub').textContent = steps[n].sub;
+  window.scrollTo(0,0);
+}
+
+function updateSales() {
+  const nm = document.getElementById('sales-name').value;
+  const em = document.getElementById('sales-email').value;
+  document.getElementById('sidebar-name').textContent = nm || '—';
+  document.getElementById('sidebar-email').textContent = em || '—';
+  update();
+}
+
+function setImo(val) {
+  imoFlag = val;
+  document.getElementById('imo-yes').classList.toggle('active', val);
+  document.getElementById('imo-no').classList.toggle('active', !val);
+  update();
+}
+
+function toggleContainer(btn) {
+  btn.classList.toggle('active');
+  const val = btn.dataset.val;
+  if (btn.classList.contains('active')) {
+    if (!selectedContainers.includes(val)) selectedContainers.push(val);
+  } else {
+    selectedContainers = selectedContainers.filter(v => v !== val);
+  }
+  update();
+}
+
+// ── SEA FREIGHT ROWS ──
+let seaRows = [];
+function initSeaRows() {
+  seaRows = [
+    { desc: 'Ocean Freight', basis: 'Per 20\'DV', rate: '2200', currency: 'USD', notes: '' },
+    { desc: 'Ocean Freight', basis: 'Per 40\'HQ', rate: '2800', currency: 'USD', notes: '' },
+    { desc: 'OTHC', basis: 'Per container 20\'DV', rate: '180', currency: 'USD', notes: '' },
+    { desc: 'OTHC', basis: 'Per container 40\'HQ', rate: '260', currency: 'USD', notes: '' },
+    { desc: 'B/L', basis: 'Per Container', rate: '25', currency: 'USD', notes: '' },
+    { desc: 'Telex', basis: 'Per Shipment', rate: '400', currency: 'EGP', notes: '' },
+  ];
+  renderSeaRows();
+}
+
+function renderSeaRows() {
+  const tbody = document.getElementById('sea-rows');
+  tbody.innerHTML = '';
+  seaRows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${r.desc}" onchange="seaRows[${i}].desc=this.value;update()" placeholder="e.g. Ocean Freight"></td>
+      <td><input value="${r.basis}" onchange="seaRows[${i}].basis=this.value;update()" placeholder="e.g. Per 20'DV"></td>
+      <td><input value="${r.rate}" onchange="seaRows[${i}].rate=this.value;update()" type="number" style="width:90px"></td>
+      <td>
+        <select onchange="seaRows[${i}].currency=this.value;update()">
+          <option ${r.currency==='USD'?'selected':''}>USD</option>
+          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
+          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
+          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
+        </select>
+      </td>
+      <td><input value="${r.notes}" onchange="seaRows[${i}].notes=this.value;update()" placeholder="Optional note"></td>
+      <td><button class="del-btn" onclick="seaRows.splice(${i},1);renderSeaRows();update()">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addSeaRow() {
+  seaRows.push({ desc: '', basis: '', rate: '', currency: 'USD', notes: '' });
+  renderSeaRows();
+}
+
+// ── TRUCKING ROWS ──
+let truckRows = [];
+function initTruckRows() {
+  truckRows = [
+    { desc: 'Trucking 20DV', container: '20DV', rate: '20000', currency: 'EGP', notes: '' },
+    { desc: 'Trucking 40HQ', container: '40HQ', rate: '22600', currency: 'EGP', notes: '' },
+  ];
+  renderTruckRows();
+}
+
+function renderTruckRows() {
+  const tbody = document.getElementById('truck-rows');
+  tbody.innerHTML = '';
+  truckRows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${r.desc}" onchange="truckRows[${i}].desc=this.value;update()" placeholder="e.g. Trucking 20DV"></td>
+      <td><input value="${r.container}" onchange="truckRows[${i}].container=this.value;update()" placeholder="20DV"></td>
+      <td><input value="${r.rate}" onchange="truckRows[${i}].rate=this.value;update()" type="number"></td>
+      <td>
+        <select onchange="truckRows[${i}].currency=this.value;update()">
+          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
+          <option ${r.currency==='USD'?'selected':''}>USD</option>
+          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
+          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
+        </select>
+      </td>
+      <td><input value="${r.notes}" onchange="truckRows[${i}].notes=this.value;update()" placeholder="Optional"></td>
+      <td><button class="del-btn" onclick="truckRows.splice(${i},1);renderTruckRows();update()">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addTruckRow() {
+  truckRows.push({ desc: '', container: '', rate: '', currency: 'EGP', notes: '' });
+  renderTruckRows();
+}
+
+// ── NOTES ──
+let notes = [
+  'The above rates are excluding official receipts.',
+  'Destination charges at POD (Port of Discharge) are not included unless otherwise stated.',
+  'Cancellation, amendment, and no-show fees may apply as per carrier policy.',
+  'GRI (General Rate Increase) and War Risk surcharges may apply at the time of shipment.',
+  'Routing, transit time, and vessel schedules are subject to change due to operational reasons.'
+];
+
+function renderNotes() {
+  const container = document.getElementById('notes-list');
+  container.innerHTML = '';
+  notes.forEach((n, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    div.innerHTML = `
+      <span style="color:#999;font-size:14px;padding-top:2px;">•</span>
+      <input type="text" value="${n}" onchange="notes[${i}]=this.value;update()"
+        style="flex:1;border:1.5px solid #dce3ed;border-radius:8px;padding:9px 14px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;color:#1a2233;"
+        onfocus="this.style.borderColor='#e84c3d'" onblur="this.style.borderColor='#dce3ed'">
+      <button onclick="notes.splice(${i},1);renderNotes();update()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:4px 8px;">✕</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addNote() {
+  notes.push('');
+  renderNotes();
+}
+
+function update() { /* real-time — preview rebuilt on goTo(5) */ }
+
+// ── FORMAT DATE ──
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function fmt(n) {
+  if (!n || isNaN(n)) return '—';
+  return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ── BUILD PDF PREVIEW ──
+function buildPreview() {
+  const g = id => document.getElementById(id)?.value || '';
+
+  const clientName = g('client-name') || '—';
+  const contactPerson = g('client-contact') || '—';
+  const clientEmail = g('client-email') || '—';
+  const clientPhone = g('client-phone') || '—';
+  const salesName = g('sales-name') || '—';
+  const salesEmail = g('sales-email') || '—';
+  const salesPhone = g('sales-phone') || '';
+  const qDate = fmtDate(g('q-date'));
+  const qValid = fmtDate(g('q-valid'));
+  const pol = g('pol') || '—';
+  const pod = g('pod') || '—';
+  const incoterms = g('incoterms') || '—';
+  const hsCode = g('hs-code');
+  const commodity = g('commodity');
+
+  // Cargo tags
+  let tagsHTML = `<span class="cargo-tag incoterms">${incoterms}</span>`;
+  if (hsCode) tagsHTML += `<span class="cargo-tag hs">HS: ${hsCode}</span>`;
+  if (imoFlag) tagsHTML += `<span class="cargo-tag imo">⚠️ IMO / DG Cargo</span>`;
+  if (commodity) tagsHTML += `<span class="cargo-tag container">${commodity}</span>`;
+  selectedContainers.forEach(c => tagsHTML += `<span class="cargo-tag container">${c}</span>`);
+
+  // Sea freight table rows
+  let seaHTML = '';
+  // Group by currency for totals
+  const totals = {};
+  seaRows.forEach(r => {
+    const amt = parseFloat(r.rate) || 0;
+    seaHTML += `
+      <tr>
+        <td>${r.desc || '—'}</td>
+        <td>${r.basis || '—'}</td>
+        <td class="amount">${fmt(r.rate)}</td>
+        <td>${r.currency}</td>
+        <td>${r.notes || ''}</td>
+      </tr>`;
+    totals[r.currency] = (totals[r.currency] || 0) + amt;
+  });
+
+  let totalStr = Object.entries(totals).map(([c, v]) => `${fmt(v)} ${c}`).join(' + ') || '—';
+
+  // Trucking table rows
+  let truckHTML = '';
+  const truckTotals = {};
+  truckRows.forEach(r => {
+    const amt = parseFloat(r.rate) || 0;
+    truckHTML += `
+      <tr>
+        <td>${r.desc || '—'}</td>
+        <td>${r.container || '—'}</td>
+        <td class="amount">${fmt(r.rate)}</td>
+        <td>${r.currency}</td>
+        <td>${r.notes || ''}</td>
+      </tr>`;
+    truckTotals[r.currency] = (truckTotals[r.currency] || 0) + amt;
+  });
+
+  let truckTotalStr = Object.entries(truckTotals).map(([c,v]) => `${fmt(v)} ${c}`).join(' + ') || '—';
+
+  // Notes
+  let notesHTML = notes.map(n => `<li>${n}</li>`).join('');
+
+  document.getElementById('pdf-preview').innerHTML = `
+    <div class="pdf-header">
+      <div class="pdf-logo">
+        <div class="pdf-logo-mark">M</div>
+        <div>
+          <div class="pdf-logo-txt">LOGISTICS</div>
+          <div class="pdf-doc-type">Freight Quotation</div>
+        </div>
+      </div>
+      <div class="pdf-dates">
+        <p>Date: <span>${qDate}</span></p>
+        <p>Valid Until: <span>${qValid}</span></p>
+        <p>Prepared by: <span>${salesName}</span></p>
+      </div>
+    </div>
+
+    <div class="pdf-body">
+
+      <div class="pdf-section-title">Company & Contact</div>
+      <div class="pdf-info-grid">
+        <div class="pdf-info-item">
+          <label>Client</label>
+          <span>${clientName}</span>
+        </div>
+        <div class="pdf-info-item">
+          <label>Contact Person</label>
+          <span>${contactPerson}</span>
+        </div>
+        <div class="pdf-info-item">
+          <label>Phone</label>
+          <span>${clientPhone}</span>
+        </div>
+        <div class="pdf-info-item" style="grid-column:span 2">
+          <label>Email</label>
+          <span class="sub">${clientEmail}</span>
+        </div>
+        <div class="pdf-info-item">
+          <label>Sales Rep</label>
+          <span>${salesName}</span>
+          <span class="sub">${salesEmail}</span>
+        </div>
+      </div>
+
+      <div class="pdf-section-title" style="margin-top:4px">Routing</div>
+      <div class="pdf-route">
+        <div class="pdf-port">
+          <div class="pdf-port-label">Port of Loading</div>
+          <div class="pdf-port-name">${pol}</div>
+          <div class="pdf-port-code">POL</div>
+        </div>
+        <div class="route-arrow">
+          <div class="arrow-line"></div>
+          <div class="arrow-ship">🚢</div>
+          <div class="arrow-line"></div>
+        </div>
+        <div class="pdf-port">
+          <div class="pdf-port-label">Port of Discharge</div>
+          <div class="pdf-port-name">${pod}</div>
+          <div class="pdf-port-code">POD</div>
+        </div>
+      </div>
+
+      <div class="pdf-section-title">Cargo Details</div>
+      <div class="cargo-tags" style="margin-bottom:20px;">${tagsHTML}</div>
+
+      <div class="section-header-bar">🌊 Sea Freight</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>Charge Description</th>
+            <th>Basis</th>
+            <th class="amount">Rate</th>
+            <th>Currency</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${seaHTML}
+          <tr class="total-row">
+            <td colspan="2"><strong>Total Sea Freight</strong></td>
+            <td class="amount" colspan="3">${totalStr}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      ${truckRows.length > 0 ? `
+      <div class="section-header-bar" style="margin-top:16px">🚛 Trucking / Inland</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>Charge Description</th>
+            <th>Container</th>
+            <th class="amount">Rate</th>
+            <th>Currency</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${truckHTML}
+          <tr class="total-row">
+            <td colspan="2"><strong>Total Trucking</strong></td>
+            <td class="amount" colspan="3">${truckTotalStr}</td>
+          </tr>
+        </tbody>
+      </table>
+      ` : ''}
+
+      ${notes.length > 0 ? `
+      <div class="pdf-notes">
+        <div class="pdf-notes-title">📋 Terms & Notes</div>
+        <ul>${notesHTML}</ul>
+      </div>` : ''}
+
+    </div>
+
+    <div class="pdf-footer">
+      <div class="pdf-footer-text">Generated ${new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})}</div>
+      <div class="pdf-footer-name">${salesName} · ${salesEmail}</div>
+    </div>
+  `;
+}
+
+// ── INIT ──
+(function() {
+  // Set today's date
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  document.getElementById('q-date').value = `${yyyy}-${mm}-${dd}`;
+  const valid = new Date(today.getTime() + 30*24*60*60*1000);
+  document.getElementById('q-valid').value = `${valid.getFullYear()}-${String(valid.getMonth()+1).padStart(2,'0')}-${String(valid.getDate()).padStart(2,'0')}`;
+
+  setImo(false);
+  initSeaRows();
+  initTruckRows();
+  renderNotes();
+})();
+
+// ── ENHANCED FEATURES ──
+
+function downloadPDF() {
+  const element = document.getElementById('pdf-preview');
+
+  const opt = {
+    margin: 0.3,
+    filename: `Quotation-${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      unit: 'in',
+      format: 'a4',
+      orientation: 'portrait'
+    }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+function saveDraft() {
+  const data = {
+    clientName: document.getElementById('client-name')?.value || '',
+    clientEmail: document.getElementById('client-email')?.value || '',
+    pol: document.getElementById('pol')?.value || '',
+    pod: document.getElementById('pod')?.value || '',
+    salesName: document.getElementById('sales-name')?.value || '',
+    seaRows,
+    truckRows,
+    notes
+  };
+
+  localStorage.setItem('quotationDraft', JSON.stringify(data));
+}
+
+function loadDraft() {
+  const saved = localStorage.getItem('quotationDraft');
+
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+
+  if(document.getElementById('client-name')) {
+    document.getElementById('client-name').value = data.clientName || '';
+    document.getElementById('client-email').value = data.clientEmail || '';
+    document.getElementById('pol').value = data.pol || '';
+    document.getElementById('pod').value = data.pod || '';
+    document.getElementById('sales-name').value = data.salesName || '';
+  }
+
+  seaRows = data.seaRows || seaRows;
+  truckRows = data.truckRows || truckRows;
+  notes = data.notes || notes;
+
+  renderSeaRows();
+  renderTruckRows();
+  renderNotes();
+  updateSales();
+}
+
+function login() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  if(email && password) {
+    localStorage.setItem('loggedIn', 'true');
+    document.getElementById('login-screen').style.display = 'none';
+  } else {
+    alert('Please enter email and password');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('loggedIn');
+  location.reload();
+}
+
+function newQuotation() {
+  if(confirm('Start a new quotation?')) {
+    localStorage.removeItem('quotationDraft');
+    location.reload();
+  }
+}
+
+const originalUpdate = update;
+update = function() {
+  originalUpdate();
+  saveDraft();
+};
+
+window.addEventListener('load', () => {
+  const logged = localStorage.getItem('loggedIn');
+
+  if(logged === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+  }
+
+  loadDraft();
+});
+
+</script>
+</body>
+</html>
