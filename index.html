@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>M Logistics — Freight Quotation Builder</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
     --navy: #0f1e35;
@@ -19,458 +20,143 @@
     --border: #dce3ed;
     --success: #27ae60;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--navy); min-height: 100vh; color: var(--white); }
 
-  body {
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: var(--navy);
-    min-height: 100vh;
-    color: var(--white);
-  }
+  /* SHELL */
+  .shell { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
 
-  /* ── SHELL ── */
-  .shell {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    min-height: 100vh;
-  }
-
-  /* ── SIDEBAR ── */
+  /* SIDEBAR */
   .sidebar {
     background: var(--navy-mid);
     border-right: 1px solid rgba(255,255,255,0.07);
     padding: 32px 24px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+    position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 32px;
   }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-mark {
-    width: 38px; height: 38px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    color: white;
-  }
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-    letter-spacing: 0.05em;
-    color: white;
-  }
-  .logo-sub {
-    font-size: 10px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    display: block;
-    margin-top: 2px;
-  }
-
-  .section-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .nav-label {
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    margin-bottom: 8px;
-    font-weight: 500;
-  }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: rgba(255,255,255,0.55);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 38px; height: 38px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: white; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.05em; color: white; }
+  .logo-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.45); letter-spacing: 0.12em; text-transform: uppercase; display: block; margin-top: 2px; }
+  .section-nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; font-weight: 500; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; transition: all 0.2s; border: 1px solid transparent; }
   .nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
-  .nav-item.active {
-    background: rgba(232,76,61,0.15);
-    color: white;
-    border-color: rgba(232,76,61,0.3);
-  }
-  .nav-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    flex-shrink: 0;
-  }
+  .nav-item.active { background: rgba(232,76,61,0.15); color: white; border-color: rgba(232,76,61,0.3); }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; }
   .nav-item.active .nav-dot { background: var(--accent); }
   .nav-item.done .nav-dot { background: var(--success); }
   .nav-item.done { color: rgba(255,255,255,0.7); }
-
-  .sidebar-footer {
-    margin-top: auto;
-    padding-top: 24px;
-    border-top: 1px solid rgba(255,255,255,0.07);
-  }
-  .sales-badge {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 14px 16px;
-  }
+  .sidebar-footer { margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.07); }
+  .sales-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 16px; }
   .sales-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
   .sales-name { font-size: 14px; font-weight: 600; color: white; }
   .sales-email { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
 
-  /* ── MAIN ── */
-  .main {
-    background: var(--off-white);
-    padding: 40px 48px;
-    color: var(--text);
-  }
-
-  .page-header {
-    margin-bottom: 36px;
-  }
-  .page-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.02em;
-  }
+  /* MAIN */
+  .main { background: var(--off-white); padding: 40px 48px; color: var(--text); }
+  .page-header { margin-bottom: 36px; }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
   .page-subtitle { font-size: 14px; color: var(--muted); margin-top: 4px; }
-
-  .step-section {
-    display: none;
-  }
+  .step-section { display: none; }
   .step-section.active { display: block; }
 
-  .card {
-    background: white;
-    border-radius: 14px;
-    padding: 28px 32px;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
+  .card { background: white; border-radius: 14px; padding: 28px 32px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .card-title-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 13px; }
 
-  .card-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 20px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card-title-icon {
-    width: 28px; height: 28px;
-    border-radius: 6px;
-    background: var(--navy);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
   .form-grid.cols-1 { grid-template-columns: 1fr; }
   .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
 
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .field input, .field select, .field textarea {
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    color: var(--text);
-    background: white;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(232,76,61,0.08);
-  }
+  .field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .field label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .field input, .field select, .field textarea { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,76,61,0.08); }
   .field textarea { resize: vertical; min-height: 80px; }
 
-  /* ── FREIGHT ROWS TABLE ── */
-  .rates-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
+  /* PORT AUTOCOMPLETE */
+  .autocomplete-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; background: white;
+    border: 1.5px solid var(--accent); border-top: none; border-radius: 0 0 8px 8px;
+    max-height: 200px; overflow-y: auto; z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   }
-  .rates-table th {
-    background: var(--navy);
-    color: rgba(255,255,255,0.7);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-  }
+  .autocomplete-item { padding: 9px 14px; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .autocomplete-item:hover, .autocomplete-item.selected { background: rgba(232,76,61,0.06); }
+  .autocomplete-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: #f0f4ff; padding: 1px 6px; border-radius: 4px; flex-shrink: 0; }
+
+  /* CHARGE DESCRIPTION AUTOCOMPLETE (inline in table) */
+  .charge-wrap { position: relative; width: 100%; }
+  .charge-wrap input { width: 100%; border: none; border-right: 1px solid var(--border); padding: 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; outline: none; }
+  .charge-wrap input:focus { background: rgba(232,76,61,0.04); }
+  .charge-dropdown { position: absolute; top: 100%; left: 0; min-width: 240px; background: white; border: 1.5px solid var(--accent); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 180px; overflow-y: auto; }
+  .charge-item { padding: 8px 12px; font-size: 12px; cursor: pointer; color: var(--text); }
+  .charge-item:hover { background: rgba(232,76,61,0.06); color: var(--accent); }
+  .charge-category { padding: 5px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: #f8fafd; border-bottom: 1px solid var(--border); }
+
+  /* RATES TABLE */
+  .rates-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rates-table th { background: var(--navy); color: rgba(255,255,255,0.7); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 12px; text-align: left; font-weight: 600; }
   .rates-table th:first-child { border-radius: 8px 0 0 0; }
   .rates-table th:last-child { border-radius: 0 8px 0 0; }
-  .rates-table td {
-    padding: 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .rates-table td input, .rates-table td select {
-    border: none;
-    border-right: 1px solid var(--border);
-    border-radius: 0;
-    padding: 10px 10px;
-    font-size: 13px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    color: var(--text);
-    background: white;
-    width: 100%;
-    outline: none;
-  }
-  .rates-table td input:focus, .rates-table td select:focus {
-    background: rgba(232,76,61,0.04);
-  }
+  .rates-table td { padding: 0; border-bottom: 1px solid var(--border); }
+  .rates-table td input, .rates-table td select { border: none; border-right: 1px solid var(--border); border-radius: 0; padding: 10px 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; width: 100%; outline: none; }
+  .rates-table td input:focus, .rates-table td select:focus { background: rgba(232,76,61,0.04); }
   .rates-table td:last-child input { border-right: none; }
-  .rates-table .total-row td {
-    background: #f8fafd;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 12px;
-    color: var(--navy);
-  }
 
-  .add-row-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: 1.5px dashed var(--border);
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 13px;
-    color: var(--muted);
-    cursor: pointer;
-    margin-top: 10px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    width: 100%;
-    justify-content: center;
-    transition: all 0.2s;
-  }
+  .add-row-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px dashed var(--border); border-radius: 8px; padding: 10px 16px; font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; width: 100%; justify-content: center; transition: all 0.2s; }
   .add-row-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,76,61,0.03); }
-
-  .del-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #ccc;
-    padding: 0 8px;
-    font-size: 16px;
-    transition: color 0.2s;
-  }
+  .del-btn { background: none; border: none; cursor: pointer; color: #ccc; padding: 0 8px; font-size: 16px; transition: color 0.2s; }
   .del-btn:hover { color: var(--accent); }
 
-  /* ── TOGGLE BUTTONS ── */
-  .toggle-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .toggle-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    background: white;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--muted);
-    transition: all 0.2s;
-    font-family: 'IBM Plex Sans', sans-serif;
-  }
-  .toggle-btn.active {
-    background: var(--navy);
-    border-color: var(--navy);
-    color: white;
-  }
+  /* TOGGLE */
+  .toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toggle-btn { padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--border); background: white; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.2s; font-family: 'IBM Plex Sans', sans-serif; }
+  .toggle-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
 
-  /* ── ACTIONS ── */
-  .actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 28px;
-    align-items: center;
-  }
-  .btn {
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Syne', sans-serif;
-    transition: all 0.2s;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 4px 14px rgba(232,76,61,0.3);
-  }
+  /* ACTIONS */
+  .actions { display: flex; gap: 12px; margin-top: 28px; align-items: center; }
+  .btn { padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif; transition: all 0.2s; border: none; display: flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 14px rgba(232,76,61,0.3); }
   .btn-primary:hover { background: #c93d30; transform: translateY(-1px); }
-  .btn-secondary {
-    background: white;
-    color: var(--navy);
-    border: 1.5px solid var(--border);
-  }
+  .btn-secondary { background: white; color: var(--navy); border: 1.5px solid var(--border); }
   .btn-secondary:hover { border-color: var(--navy); }
   .btn-ghost { background: none; color: var(--muted); padding: 12px 16px; }
   .btn-ghost:hover { color: var(--text); }
-
-  .btn-generate {
-    background: var(--navy);
-    color: white;
-    box-shadow: 0 4px 14px rgba(15,30,53,0.25);
-    padding: 14px 32px;
-    font-size: 15px;
-  }
+  .btn-generate { background: var(--navy); color: white; box-shadow: 0 4px 14px rgba(15,30,53,0.25); padding: 14px 32px; font-size: 15px; }
   .btn-generate:hover { background: var(--navy-mid); transform: translateY(-1px); }
 
-  /* ── IMO BADGE ── */
-  .imo-section {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 20px;
-    border-radius: 10px;
-    background: #fff8f0;
-    border: 1.5px solid #f5a623;
-  }
+  /* IMO */
+  .imo-section { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 10px; background: #fff8f0; border: 1.5px solid #f5a623; }
   .imo-label { font-size: 13px; font-weight: 600; color: var(--text); }
   .imo-sub { font-size: 12px; color: var(--muted); }
 
-  /* ── PREVIEW AREA ── */
-  #preview-section {
-    display: none;
-  }
-  #preview-section.active { display: block; }
-
-  .preview-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    background: white;
-    padding: 14px 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
+  /* PREVIEW */
+  .preview-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; background: white; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border); }
   .preview-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--navy); }
 
-  /* ── PDF PREVIEW ── */
-  #pdf-preview {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.12);
-    font-family: 'IBM Plex Sans', sans-serif;
-    color: #1a2233;
-  }
-
-  .pdf-header {
-    background: var(--navy);
-    padding: 24px 36px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  .pdf-logo {
-    display: flex; align-items: center; gap: 10px;
-  }
-  .pdf-logo-mark {
-    width: 40px; height: 40px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    color: white;
-  }
+  /* PDF PREVIEW */
+  #pdf-preview { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.12); font-family: 'IBM Plex Sans', sans-serif; color: #1a2233; }
+  .pdf-header { background: var(--navy); padding: 24px 36px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .pdf-logo { display: flex; align-items: center; gap: 10px; }
+  .pdf-logo-mark { width: 40px; height: 40px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: white; }
   .pdf-logo-txt { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; letter-spacing: 0.05em; }
   .pdf-doc-type { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px; }
   .pdf-dates { text-align: right; }
   .pdf-dates p { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.7; font-family: 'IBM Plex Mono', monospace; }
   .pdf-dates span { color: white; font-weight: 500; }
-
   .pdf-body { padding: 28px 36px; }
-
-  .pdf-section-title {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
-  .pdf-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-    background: #f8fafd;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-  }
+  .pdf-section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .pdf-info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; background: #f8fafd; border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; }
   .pdf-info-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 4px; }
   .pdf-info-item span { font-size: 14px; font-weight: 600; color: var(--navy); }
   .pdf-info-item .sub { font-size: 12px; font-weight: 400; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
-
-  .pdf-route {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 20px;
-    background: var(--navy);
-    border-radius: 10px;
-    margin-bottom: 20px;
-  }
+  .pdf-route { display: flex; align-items: center; gap: 12px; padding: 18px 20px; background: var(--navy); border-radius: 10px; margin-bottom: 20px; }
   .pdf-port { text-align: center; }
   .pdf-port-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
   .pdf-port-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: white; }
@@ -478,335 +164,190 @@
   .route-arrow { flex: 1; display: flex; align-items: center; gap: 6px; }
   .arrow-line { flex: 1; height: 1px; background: rgba(255,255,255,0.2); }
   .arrow-ship { font-size: 20px; }
-
   .cargo-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-  .cargo-tag {
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1.5px solid;
-  }
+  .cargo-tag { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 1.5px solid; }
   .cargo-tag.incoterms { background: #e8f4fd; border-color: #b8d9f5; color: #1a6fa6; }
   .cargo-tag.hs { background: #f0faf0; border-color: #b5deb5; color: #1d7a2f; font-family: 'IBM Plex Mono', monospace; }
   .cargo-tag.imo { background: #fff3cd; border-color: #f5d78e; color: #8a5e00; }
   .cargo-tag.container { background: #f3edff; border-color: #c8b8f5; color: #5a2da6; }
-
-  .pdf-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    margin-bottom: 16px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  .pdf-table th {
-    background: var(--navy);
-    color: rgba(255,255,255,0.75);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-  }
+  .pdf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 16px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .pdf-table th { background: var(--navy); color: rgba(255,255,255,0.75); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px; text-align: left; font-weight: 600; }
   .pdf-table td { padding: 10px 14px; border-bottom: 1px solid #edf0f5; color: var(--text); }
   .pdf-table tr:last-child td { border-bottom: none; }
   .pdf-table tr:nth-child(even) td { background: #fafbfd; }
-  .pdf-table .total-row td {
-    background: #f0f4ff;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--navy);
-    border-top: 2px solid var(--navy);
-  }
+  .pdf-table .total-row td { background: #f0f4ff; font-weight: 700; font-size: 13px; color: var(--navy); border-top: 2px solid var(--navy); }
   .pdf-table .amount { text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
-
-  .section-header-bar {
-    background: linear-gradient(90deg, var(--navy-light), var(--navy-mid));
-    color: white;
-    font-family: 'Syne', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 9px 14px;
-    border-radius: 6px 6px 0 0;
-    margin-bottom: -1px;
-  }
-
-  .pdf-notes {
-    background: #fffbf0;
-    border: 1px solid #f5e4b0;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-top: 20px;
-  }
+  .section-header-bar { background: linear-gradient(90deg, var(--navy-light), var(--navy-mid)); color: white; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 14px; border-radius: 6px 6px 0 0; margin-bottom: -1px; }
+  .pdf-notes { background: #fffbf0; border: 1px solid #f5e4b0; border-radius: 10px; padding: 18px 20px; margin-top: 20px; }
   .pdf-notes-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8a6f00; margin-bottom: 10px; }
   .pdf-notes ul { padding-left: 16px; }
   .pdf-notes li { font-size: 12px; color: #5a4a00; line-height: 1.8; }
-
-  .pdf-footer {
-    background: var(--navy);
-    padding: 16px 36px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+  .pdf-footer { background: var(--navy); padding: 16px 36px; display: flex; justify-content: space-between; align-items: center; }
   .pdf-footer-text { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'IBM Plex Mono', monospace; }
   .pdf-footer-name { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
 
-  /* Print */
+  /* SCHEDULE CARD */
+  .schedule-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .schedule-item { background: #f8fafd; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .schedule-item label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
+  .schedule-item input, .schedule-item select { width: 100%; border: 1.5px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; outline: none; }
+  .schedule-item input:focus, .schedule-item select:focus { border-color: var(--accent); }
+
+  /* HISTORY */
+  .history-empty { text-align: center; padding: 48px 0; color: var(--muted); font-size: 14px; }
+  .history-grid { display: grid; gap: 12px; }
+  .history-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s; }
+  .history-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(232,76,61,0.1); }
+  .history-card-icon { width: 44px; height: 44px; background: var(--navy); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .history-card-body { flex: 1; min-width: 0; }
+  .history-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-card-meta { font-size: 12px; color: var(--muted); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .history-card-route { font-size: 12px; color: var(--text); font-weight: 500; margin-top: 4px; }
+  .history-card-actions { display: flex; gap: 8px; }
+  .history-btn { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif; border: none; transition: all 0.2s; }
+  .history-btn-load { background: var(--navy); color: white; }
+  .history-btn-load:hover { background: var(--accent); }
+  .history-btn-del { background: #fff0f0; color: var(--accent); }
+  .history-btn-del:hover { background: var(--accent); color: white; }
+
+  /* TOPBAR */
+  .topbar { background: white; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-user { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .topbar-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+  .topbar button { border: none; background: var(--navy); color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer; margin-left: 8px; font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif; transition: background 0.2s; }
+  .topbar button:hover { background: var(--accent); }
+  .topbar .btn-history { background: #1a2f4a; }
+
+  /* LOGIN */
+  #login-screen { position: fixed; inset: 0; background: rgba(15,30,53,0.98); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .login-card { width: 360px; background: white; padding: 36px 32px; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
+  .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .login-logo-mark { width: 42px; height: 42px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: white; }
+  .login-logo-txt { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--navy); }
+  .login-logo-sub { font-size: 11px; color: var(--muted); }
+  .login-card h2 { margin-bottom: 6px; color: var(--navy); font-family: 'Syne', sans-serif; font-size: 22px; }
+  .login-card p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .login-field { margin-bottom: 14px; }
+  .login-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .login-card input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 14px; outline: none; transition: border-color 0.2s; font-family: 'IBM Plex Sans', sans-serif; }
+  .login-card input:focus { border-color: var(--accent); }
+  .login-card .btn-login { width: 100%; background: var(--accent); color: white; border: none; border-radius: 10px; padding: 13px; font-weight: 700; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 15px; margin-top: 6px; transition: background 0.2s; }
+  .login-card .btn-login:hover { background: #b81212; }
+
+  /* SAVE HISTORY MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,30,53,0.7); display: flex; align-items: center; justify-content: center; z-index: 8000; }
+  .modal-box { background: white; border-radius: 16px; padding: 32px; width: 420px; max-width: 90vw; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .modal-field input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; outline: none; }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-btn { flex: 1; padding: 11px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif; border: none; }
+  .modal-btn-primary { background: var(--navy); color: white; }
+  .modal-btn-primary:hover { background: var(--accent); }
+  .modal-btn-secondary { background: var(--off-white); color: var(--muted); border: 1.5px solid var(--border); }
+
+  /* PDF route schedule info */
+  .pdf-schedule-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: #f0f4ff; border: 1px solid #d0d9f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+  .pdf-sched-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 4px; }
+  .pdf-sched-item span { font-size: 13px; font-weight: 600; color: var(--navy); font-family: 'IBM Plex Mono', monospace; }
+
   @media print {
     body { background: white !important; }
     .shell { display: block !important; }
-    .sidebar, .page-header, .step-section, .preview-toolbar { display: none !important; }
+    .sidebar, .page-header, .step-section, .preview-toolbar, .topbar { display: none !important; }
     .main { padding: 0 !important; background: white !important; }
-    #preview-section { display: block !important; }
+    #step-5 { display: block !important; }
     #pdf-preview { box-shadow: none !important; border-radius: 0 !important; }
   }
-
-  
-  /* LOGIN SCREEN */
-  #login-screen {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,30,53,0.98);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  .login-card {
-    width: 360px;
-    background: white;
-    padding: 32px;
-    border-radius: 18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-  }
-
-  .login-card h2 {
-    margin-bottom: 20px;
-    color: #0f1e35;
-    font-family: 'Syne', sans-serif;
-  }
-
-  .login-card input {
-    width: 100%;
-    margin-bottom: 14px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid #dce3ed;
-    font-size: 14px;
-  }
-
-  .login-card button {
-    width: 100%;
-    background: #e84c3d;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 12px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .topbar {
-    background: white;
-    border-radius: 12px;
-    padding: 14px 20px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #dce3ed;
-  }
-
-  .topbar button {
-    border: none;
-    background: #0f1e35;
-    color: white;
-    padding: 10px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-left: 8px;
-  }
-
-
-  /* Responsive */
   @media (max-width: 900px) {
     .shell { grid-template-columns: 1fr; }
     .sidebar { display: none; }
     .main { padding: 24px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+    .form-grid, .form-grid.cols-3, .form-grid.cols-4 { grid-template-columns: 1fr; }
+    .schedule-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-// ── ENHANCED FEATURES ──
-
-function downloadPDF() {
-  const element = document.getElementById('pdf-preview');
-
-  const opt = {
-    margin: 0.3,
-    filename: `Quotation-${Date.now()}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 2 },
-    jsPDF: {
-      unit: 'in',
-      format: 'a4',
-      orientation: 'portrait'
-    }
-  };
-
-  html2pdf().set(opt).from(element).save();
-}
-
-function saveDraft() {
-  const data = {
-    clientName: document.getElementById('client-name')?.value || '',
-    clientEmail: document.getElementById('client-email')?.value || '',
-    pol: document.getElementById('pol')?.value || '',
-    pod: document.getElementById('pod')?.value || '',
-    salesName: document.getElementById('sales-name')?.value || '',
-    seaRows,
-    truckRows,
-    notes
-  };
-
-  localStorage.setItem('quotationDraft', JSON.stringify(data));
-}
-
-function loadDraft() {
-  const saved = localStorage.getItem('quotationDraft');
-
-  if (!saved) return;
-
-  const data = JSON.parse(saved);
-
-  if(document.getElementById('client-name')) {
-    document.getElementById('client-name').value = data.clientName || '';
-    document.getElementById('client-email').value = data.clientEmail || '';
-    document.getElementById('pol').value = data.pol || '';
-    document.getElementById('pod').value = data.pod || '';
-    document.getElementById('sales-name').value = data.salesName || '';
-  }
-
-  seaRows = data.seaRows || seaRows;
-  truckRows = data.truckRows || truckRows;
-  notes = data.notes || notes;
-
-  renderSeaRows();
-  renderTruckRows();
-  renderNotes();
-  updateSales();
-}
-
-function login() {
-  const validUsers = ['Samar', 'Zeyad', 'Merna'];
-  const validPassword = '1234';
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
-  const errEl = document.getElementById('login-error');
-
-  if (validUsers.includes(username) && password === validPassword) {
-    localStorage.setItem('loggedIn', 'true');
-    localStorage.setItem('loggedInUser', username);
-    document.getElementById('login-screen').style.display = 'none';
-    errEl.style.display = 'none';
-  } else {
-    errEl.style.display = 'block';
-  }
-}
-
-function logout() {
-  localStorage.removeItem('loggedIn');
-  location.reload();
-}
-
-function newQuotation() {
-  if(confirm('Start a new quotation?')) {
-    localStorage.removeItem('quotationDraft');
-    location.reload();
-  }
-}
-
-const originalUpdate = update;
-update = function() {
-  originalUpdate();
-  saveDraft();
-};
-
-window.addEventListener('load', () => {
-  const logged = localStorage.getItem('loggedIn');
-
-  if(logged === 'true') {
-    document.getElementById('login-screen').style.display = 'none';
-  }
-
-  loadDraft();
-});
-
-</script>
 </head>
-
 <body>
 
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-        <h2>M Logistics Team Login</h2>
-    <input type="text" id="login-username" placeholder="Username">
-    <input type="password" id="login-password" placeholder="Password">
-    <p id="login-error" style="color:#e84c3d;font-size:13px;margin-bottom:10px;display:none;">Invalid username or password.</p>
-    <button onclick="login()">Login</button>
+    <div class="login-logo">
+      <div class="login-logo-mark">M</div>
+      <div>
+        <div class="login-logo-txt">M LOGISTICS</div>
+        <div class="login-logo-sub">Quotation Builder</div>
+      </div>
+    </div>
+    <h2>Team Login</h2>
+    <p>Sign in to access the quotation system</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter your name">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <p id="login-error" style="color:#e84c3d;font-size:13px;margin-bottom:10px;display:none;">❌ Invalid username or password.</p>
+    <button class="btn-login" onclick="login()">Login →</button>
   </div>
 </div>
 
-<div class="topbar">
-  <div><strong>M Logistics Dashboard</strong></div>
+<!-- SAVE MODAL -->
+<div id="save-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">💾 Save Quotation</div>
+    <div class="modal-sub">Give this quotation a name to save it in history.</div>
+    <div class="modal-field">
+      <label>Quotation Name</label>
+      <input type="text" id="save-name" placeholder="e.g. Al Malaz — NY — June 2025">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('save-modal').style.display='none'">Cancel</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmSave()">Save to History</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar" style="margin:16px 16px 0">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <div class="topbar-user" id="topbar-user">—</div>
+  </div>
   <div>
-    <button onclick="newQuotation()">+ New Quotation</button>
-    <button onclick="logout()">Logout</button>
+    <button class="btn-history" onclick="goTo(6)">📁 History</button>
+    <button onclick="saveToHistory()">💾 Save</button>
+    <button onclick="newQuotation()">+ New</button>
+    <button onclick="logout()" style="background:#c0392b;">Logout</button>
   </div>
 </div>
 
 <div class="shell">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-        <div class="logo">
+    <div class="logo">
       <div class="logo-mark">M</div>
       <div>
         <div class="logo-text">LOGISTICS</div>
         <span class="logo-sub">Quotation Builder</span>
       </div>
     </div>
-
     <nav class="section-nav">
       <div class="nav-label">Steps</div>
-      <div class="nav-item active" onclick="goTo(0)" id="nav-0">
-        <div class="nav-dot"></div> Client & Sales Info
-      </div>
-      <div class="nav-item" onclick="goTo(1)" id="nav-1">
-        <div class="nav-dot"></div> Route & Cargo
-      </div>
-      <div class="nav-item" onclick="goTo(2)" id="nav-2">
-        <div class="nav-dot"></div> Sea Freight Rates
-      </div>
-      <div class="nav-item" onclick="goTo(3)" id="nav-3">
-        <div class="nav-dot"></div> Trucking Rates
-      </div>
-      <div class="nav-item" onclick="goTo(4)" id="nav-4">
-        <div class="nav-dot"></div> Terms & Notes
-      </div>
-      <div class="nav-item" onclick="goTo(5)" id="nav-5">
-        <div class="nav-dot"></div> Preview & Export
-      </div>
+      <div class="nav-item active" onclick="goTo(0)" id="nav-0"><div class="nav-dot"></div> Client & Sales Info</div>
+      <div class="nav-item" onclick="goTo(1)" id="nav-1"><div class="nav-dot"></div> Route & Cargo</div>
+      <div class="nav-item" onclick="goTo(2)" id="nav-2"><div class="nav-dot"></div> Sea Freight Rates</div>
+      <div class="nav-item" onclick="goTo(3)" id="nav-3"><div class="nav-dot"></div> Trucking Rates</div>
+      <div class="nav-item" onclick="goTo(4)" id="nav-4"><div class="nav-dot"></div> Terms & Notes</div>
+      <div class="nav-item" onclick="goTo(5)" id="nav-5"><div class="nav-dot"></div> Preview & Export</div>
+      <div class="nav-item" onclick="goTo(6)" id="nav-6"><div class="nav-dot"></div> 📁 History</div>
     </nav>
-
     <div class="sidebar-footer">
       <div class="sales-badge">
         <div class="sales-label">Current Sales Rep</div>
@@ -816,7 +357,6 @@ window.addEventListener('load', () => {
     </div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
     <div class="page-header" id="main-header">
       <div class="page-title" id="step-title">Client & Sales Info</div>
@@ -828,57 +368,27 @@ window.addEventListener('load', () => {
       <div class="card">
         <div class="card-title"><div class="card-title-icon">👤</div> Client Information</div>
         <div class="form-grid">
-          <div class="field">
-            <label>Client / Company Name</label>
-            <input type="text" id="client-name" placeholder="Al Malaz for export and import" oninput="update()">
-          </div>
-          <div class="field">
-            <label>Contact Person</label>
-            <input type="text" id="client-contact" placeholder="Alaa" oninput="update()">
-          </div>
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="client-email" placeholder="client@email.com" oninput="update()">
-          </div>
-          <div class="field">
-            <label>Phone</label>
-            <input type="text" id="client-phone" placeholder="+20 1000000000" oninput="update()">
-          </div>
+          <div class="field"><label>Client / Company Name</label><input type="text" id="client-name" placeholder="Al Malaz for export and import" oninput="update()"></div>
+          <div class="field"><label>Contact Person</label><input type="text" id="client-contact" placeholder="Alaa" oninput="update()"></div>
+          <div class="field"><label>Email</label><input type="email" id="client-email" placeholder="client@email.com" oninput="update()"></div>
+          <div class="field"><label>Phone</label><input type="text" id="client-phone" placeholder="+20 1000000000" oninput="update()"></div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title"><div class="card-title-icon">🧑‍💼</div> Sales Representative</div>
         <div class="form-grid cols-3">
-          <div class="field">
-            <label>Sales Rep Name</label>
-            <input type="text" id="sales-name" placeholder="Your name" oninput="updateSales()">
-          </div>
-          <div class="field">
-            <label>Sales Email</label>
-            <input type="email" id="sales-email" placeholder="you@mlogistics.uk" oninput="updateSales()">
-          </div>
-          <div class="field">
-            <label>Sales Phone</label>
-            <input type="text" id="sales-phone" placeholder="+44 ..." oninput="update()">
-          </div>
+          <div class="field"><label>Sales Rep Name</label><input type="text" id="sales-name" placeholder="Your name" oninput="updateSales()"></div>
+          <div class="field"><label>Sales Email</label><input type="email" id="sales-email" placeholder="you@mlogistics.uk" oninput="updateSales()"></div>
+          <div class="field"><label>Sales Phone</label><input type="text" id="sales-phone" placeholder="+44 ..." oninput="update()"></div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title"><div class="card-title-icon">📅</div> Quotation Dates</div>
         <div class="form-grid">
-          <div class="field">
-            <label>Quotation Date</label>
-            <input type="date" id="q-date" oninput="update()">
-          </div>
-          <div class="field">
-            <label>Valid Until</label>
-            <input type="date" id="q-valid" oninput="update()">
-          </div>
+          <div class="field"><label>Quotation Date</label><input type="date" id="q-date" oninput="update()"></div>
+          <div class="field"><label>Valid Until</label><input type="date" id="q-valid" oninput="update()"></div>
         </div>
       </div>
-
       <div class="actions">
         <button class="btn btn-primary" onclick="goTo(1)">Continue → Route & Cargo</button>
       </div>
@@ -889,13 +399,15 @@ window.addEventListener('load', () => {
       <div class="card">
         <div class="card-title"><div class="card-title-icon">🚢</div> Shipping Route</div>
         <div class="form-grid cols-3">
-          <div class="field">
+          <div class="field" id="pol-field">
             <label>Port of Loading (POL)</label>
-            <input type="text" id="pol" placeholder="Alexandria" oninput="update()">
+            <input type="text" id="pol" placeholder="Search port name or code..." oninput="portSearch('pol')" autocomplete="off">
+            <div class="autocomplete-dropdown" id="pol-dropdown" style="display:none"></div>
           </div>
-          <div class="field">
+          <div class="field" id="pod-field">
             <label>Port of Discharge (POD)</label>
-            <input type="text" id="pod" placeholder="New York" oninput="update()">
+            <input type="text" id="pod" placeholder="Search port name or code..." oninput="portSearch('pod')" autocomplete="off">
+            <div class="autocomplete-dropdown" id="pod-dropdown" style="display:none"></div>
           </div>
           <div class="field">
             <label>Incoterms</label>
@@ -917,19 +429,43 @@ window.addEventListener('load', () => {
         </div>
       </div>
 
+      <!-- NEW: VESSEL SCHEDULE -->
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">⏱️</div> Vessel Schedule & Free Days</div>
+        <div class="schedule-grid">
+          <div class="schedule-item">
+            <label>Transit Time</label>
+            <input type="text" id="transit-time" placeholder="e.g. 28–32 days" oninput="update()">
+          </div>
+          <div class="schedule-item">
+            <label>Vessel / Shipping Line</label>
+            <input type="text" id="vessel-name" placeholder="e.g. MSC / CMA CGM" oninput="update()">
+          </div>
+          <div class="schedule-item">
+            <label>ETD (Est. Departure)</label>
+            <input type="date" id="etd" oninput="update()">
+          </div>
+          <div class="schedule-item">
+            <label>ETA (Est. Arrival)</label>
+            <input type="date" id="eta" oninput="update()">
+          </div>
+          <div class="schedule-item">
+            <label>Origin Free Days</label>
+            <input type="text" id="free-days-origin" placeholder="e.g. 7 days" oninput="update()">
+          </div>
+          <div class="schedule-item">
+            <label>Destination Free Days</label>
+            <input type="text" id="free-days-dest" placeholder="e.g. 14 days" oninput="update()">
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title"><div class="card-title-icon">📦</div> Cargo Details</div>
         <div class="form-grid">
-          <div class="field">
-            <label>Commodity / Cargo Description</label>
-            <input type="text" id="commodity" placeholder="e.g. General Cargo, Electronics, Textiles..." oninput="update()">
-          </div>
-          <div class="field">
-            <label>HS Code</label>
-            <input type="text" id="hs-code" placeholder="e.g. 6204.62.90" oninput="update()">
-          </div>
+          <div class="field"><label>Commodity / Cargo Description</label><input type="text" id="commodity" placeholder="e.g. General Cargo, Electronics, Textiles..." oninput="update()"></div>
+          <div class="field"><label>HS Code</label><input type="text" id="hs-code" placeholder="e.g. 6204.62.90" oninput="update()"></div>
         </div>
-
         <div style="margin-top: 20px;">
           <div class="field" style="margin-bottom: 12px;">
             <label>Container Types</label>
@@ -943,19 +479,17 @@ window.addEventListener('load', () => {
             </div>
           </div>
         </div>
-
         <div class="imo-section" style="margin-top: 16px;">
           <div>
             <div class="imo-label">⚠️ IMO / Dangerous Goods?</div>
             <div class="imo-sub">Is this cargo classified as hazardous material?</div>
           </div>
           <div class="toggle-group" style="margin-left: auto;">
-            <button class="toggle-btn" id="imo-no" onclick="setImo(false)" style="background:white;border-color:#dce3ed;color:#6b7a8d">Not IMO</button>
+            <button class="toggle-btn" id="imo-no" onclick="setImo(false)">Not IMO</button>
             <button class="toggle-btn" id="imo-yes" onclick="setImo(true)">IMO / DG</button>
           </div>
         </div>
       </div>
-
       <div class="actions">
         <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
         <button class="btn btn-primary" onclick="goTo(2)">Continue → Sea Freight</button>
@@ -970,21 +504,19 @@ window.addEventListener('load', () => {
           <table class="rates-table" id="sea-table">
             <thead>
               <tr>
-                <th style="width:24%">Charge Description</th>
+                <th style="width:26%">Charge Description</th>
                 <th style="width:18%">Basis</th>
-                <th style="width:14%">Rate</th>
-                <th style="width:12%">Currency</th>
+                <th style="width:13%">Rate</th>
+                <th style="width:11%">Currency</th>
                 <th style="width:24%">Notes</th>
                 <th style="width:8%"></th>
               </tr>
             </thead>
-            <tbody id="sea-rows">
-            </tbody>
+            <tbody id="sea-rows"></tbody>
           </table>
         </div>
         <button class="add-row-btn" onclick="addSeaRow()">+ Add Charge</button>
       </div>
-
       <div class="actions">
         <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
         <button class="btn btn-primary" onclick="goTo(3)">Continue → Trucking</button>
@@ -1001,19 +533,17 @@ window.addEventListener('load', () => {
               <tr>
                 <th style="width:28%">Charge Description</th>
                 <th style="width:18%">Container Type</th>
-                <th style="width:18%">Rate</th>
-                <th style="width:14%">Currency</th>
-                <th style="width:14%">Notes</th>
+                <th style="width:15%">Rate</th>
+                <th style="width:12%">Currency</th>
+                <th style="width:19%">Notes</th>
                 <th style="width:8%"></th>
               </tr>
             </thead>
-            <tbody id="truck-rows">
-            </tbody>
+            <tbody id="truck-rows"></tbody>
           </table>
         </div>
         <button class="add-row-btn" onclick="addTruckRow()">+ Add Trucking Rate</button>
       </div>
-
       <div class="actions">
         <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
         <button class="btn btn-primary" onclick="goTo(4)">Continue → Terms</button>
@@ -1024,11 +554,10 @@ window.addEventListener('load', () => {
     <div class="step-section" id="step-4">
       <div class="card">
         <div class="card-title"><div class="card-title-icon">📋</div> Terms & Conditions</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">These will appear in the Notes section of the PDF. Default terms are pre-filled below.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">These will appear in the Notes section of the PDF.</p>
         <div id="notes-list" style="display:flex;flex-direction:column;gap:8px;"></div>
         <button class="add-row-btn" onclick="addNote()" style="margin-top:10px;">+ Add Note</button>
       </div>
-
       <div class="actions">
         <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
         <button class="btn btn-generate" onclick="goTo(5)">🖨 Generate Quotation PDF</button>
@@ -1041,54 +570,520 @@ window.addEventListener('load', () => {
         <div class="preview-title">📄 Quotation Preview</div>
         <div style="display:flex;gap:10px;">
           <button class="btn btn-secondary" onclick="goTo(4)" style="padding:8px 18px;font-size:13px;">← Edit</button>
+          <button class="btn btn-primary" onclick="saveToHistory()" style="padding:8px 18px;font-size:13px;">💾 Save</button>
           <button class="btn btn-primary" onclick="downloadPDF()" style="padding:8px 18px;font-size:13px;">⬇ Download PDF</button>
         </div>
       </div>
       <div id="pdf-preview"></div>
     </div>
 
+    <!-- STEP 6: HISTORY -->
+    <div class="step-section" id="step-6">
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon">📁</div> Quotation History</div>
+        <div id="history-container"></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
 <script>
-// ── STATE ──
+// ══════════════════════════════════════════════════
+// WORLD PORTS DATABASE (top ~300 ports)
+// ══════════════════════════════════════════════════
+const PORTS = [
+  // EGYPT
+  {code:'EGALY',name:'Alexandria',country:'Egypt'},
+  {code:'EGDAM',name:'Damietta',country:'Egypt'},
+  {code:'EGPSD',name:'Port Said',country:'Egypt'},
+  {code:'EGSOKHNA',name:'Sokhna / Ain Sokhna',country:'Egypt'},
+  {code:'EGADL',name:'Adabiya',country:'Egypt'},
+  {code:'EGLTX',name:'Luxor',country:'Egypt'},
+  // UAE
+  {code:'AEDXB',name:'Dubai (Jebel Ali)',country:'UAE'},
+  {code:'AEAUH',name:'Abu Dhabi (Zayed)',country:'UAE'},
+  {code:'AESHJ',name:'Sharjah',country:'UAE'},
+  {code:'AEKHL',name:'Khalifa Port',country:'UAE'},
+  // SAUDI ARABIA
+  {code:'SAJED',name:'Jeddah',country:'Saudi Arabia'},
+  {code:'SADMM',name:'Dammam (King Abdulaziz)',country:'Saudi Arabia'},
+  {code:'SARYN',name:'Riyadh (Dry Port)',country:'Saudi Arabia'},
+  {code:'SAYNB',name:'Yanbu',country:'Saudi Arabia'},
+  {code:'SAJUB',name:'Jubail',country:'Saudi Arabia'},
+  // USA
+  {code:'USLAX',name:'Los Angeles',country:'USA'},
+  {code:'USLGB',name:'Long Beach',country:'USA'},
+  {code:'USNYC',name:'New York / New Jersey',country:'USA'},
+  {code:'USSAV',name:'Savannah',country:'USA'},
+  {code:'USHOU',name:'Houston',country:'USA'},
+  {code:'USORD',name:'Chicago (O\'Hare)',country:'USA'},
+  {code:'USMIA',name:'Miami',country:'USA'},
+  {code:'USBAL',name:'Baltimore',country:'USA'},
+  {code:'USORF',name:'Norfolk',country:'USA'},
+  {code:'USSEA',name:'Seattle',country:'USA'},
+  {code:'USTAC',name:'Tacoma',country:'USA'},
+  {code:'USCHA',name:'Charleston',country:'USA'},
+  {code:'USNO',name:'New Orleans',country:'USA'},
+  {code:'USBOS',name:'Boston',country:'USA'},
+  {code:'USPHL',name:'Philadelphia',country:'USA'},
+  // CHINA
+  {code:'CNSHA',name:'Shanghai',country:'China'},
+  {code:'CNNGB',name:'Ningbo',country:'China'},
+  {code:'CNTAO',name:'Qingdao',country:'China'},
+  {code:'CNSZX',name:'Shenzhen (Yantian)',country:'China'},
+  {code:'CNTXG',name:'Tianjin',country:'China'},
+  {code:'CNGZU',name:'Guangzhou (Nansha)',country:'China'},
+  {code:'CNXMN',name:'Xiamen',country:'China'},
+  {code:'CNLYG',name:'Lianyungang',country:'China'},
+  {code:'CNZSN',name:'Zhanshan (Dalian)',country:'China'},
+  {code:'CNDAL',name:'Dalian',country:'China'},
+  {code:'CNFOC',name:'Fuzhou',country:'China'},
+  {code:'CNNKG',name:'Nanjing',country:'China'},
+  // EUROPE
+  {code:'NLRTM',name:'Rotterdam',country:'Netherlands'},
+  {code:'DEHAM',name:'Hamburg',country:'Germany'},
+  {code:'BEANR',name:'Antwerp',country:'Belgium'},
+  {code:'GBFXT',name:'Felixstowe',country:'UK'},
+  {code:'GBSOU',name:'Southampton',country:'UK'},
+  {code:'GBLON',name:'London (Tilbury)',country:'UK'},
+  {code:'FRMRS',name:'Marseille',country:'France'},
+  {code:'FRLEH',name:'Le Havre',country:'France'},
+  {code:'ITGOA',name:'Genoa',country:'Italy'},
+  {code:'ITVCE',name:'Venice',country:'Italy'},
+  {code:'ITTRS',name:'Trieste',country:'Italy'},
+  {code:'ITLIV',name:'Livorno',country:'Italy'},
+  {code:'ESMAD',name:'Madrid (Dry)',country:'Spain'},
+  {code:'ESVLC',name:'Valencia',country:'Spain'},
+  {code:'ESALG',name:'Algeciras',country:'Spain'},
+  {code:'ESBCN',name:'Barcelona',country:'Spain'},
+  {code:'GRPIR',name:'Piraeus',country:'Greece'},
+  {code:'TRMER',name:'Mersin',country:'Turkey'},
+  {code:'TRIST',name:'Istanbul (Ambarli)',country:'Turkey'},
+  {code:'TRISK',name:'Iskenderun',country:'Turkey'},
+  {code:'PTLIS',name:'Lisbon',country:'Portugal'},
+  {code:'PTSET',name:'Setubal',country:'Portugal'},
+  {code:'PLGDY',name:'Gdynia',country:'Poland'},
+  {code:'PLGDN',name:'Gdansk',country:'Poland'},
+  {code:'SESTO',name:'Stockholm',country:'Sweden'},
+  {code:'SEGOT',name:'Gothenburg',country:'Sweden'},
+  {code:'DKAAR',name:'Aarhus',country:'Denmark'},
+  {code:'FICOP',name:'Helsinki',country:'Finland'},
+  {code:'NOOSLO',name:'Oslo',country:'Norway'},
+  {code:'ROBRA',name:'Braila',country:'Romania'},
+  {code:'ROCND',name:'Constanta',country:'Romania'},
+  // SINGAPORE & ASIA-PACIFIC
+  {code:'SGSIN',name:'Singapore',country:'Singapore'},
+  {code:'MYPKG',name:'Port Klang',country:'Malaysia'},
+  {code:'MYTPP',name:'Tanjung Pelepas',country:'Malaysia'},
+  {code:'THBKK',name:'Bangkok (Laem Chabang)',country:'Thailand'},
+  {code:'VNHPH',name:'Haiphong',country:'Vietnam'},
+  {code:'VNSGN',name:'Ho Chi Minh City',country:'Vietnam'},
+  {code:'PHMNL',name:'Manila',country:'Philippines'},
+  {code:'IDTPP',name:'Tanjung Priok (Jakarta)',country:'Indonesia'},
+  {code:'IDBPN',name:'Balikpapan',country:'Indonesia'},
+  {code:'BDCGP',name:'Chittagong',country:'Bangladesh'},
+  {code:'LKCMB',name:'Colombo',country:'Sri Lanka'},
+  {code:'INNSAVA',name:'Nhava Sheva (Mumbai)',country:'India'},
+  {code:'INCHE',name:'Chennai',country:'India'},
+  {code:'INPAV',name:'Mundra',country:'India'},
+  {code:'INKTP',name:'Kolkata',country:'India'},
+  {code:'INCOK',name:'Cochin',country:'India'},
+  {code:'PKKAR',name:'Karachi',country:'Pakistan'},
+  // JAPAN & KOREA
+  {code:'JPTYO',name:'Tokyo',country:'Japan'},
+  {code:'JPYOK',name:'Yokohama',country:'Japan'},
+  {code:'JPOSA',name:'Osaka',country:'Japan'},
+  {code:'JPNGO',name:'Nagoya',country:'Japan'},
+  {code:'JPKOBE',name:'Kobe',country:'Japan'},
+  {code:'KRPUS',name:'Busan',country:'South Korea'},
+  {code:'KRICN',name:'Incheon',country:'South Korea'},
+  // AFRICA
+  {code:'ZADUR',name:'Durban',country:'South Africa'},
+  {code:'ZACPT',name:'Cape Town',country:'South Africa'},
+  {code:'ZAELS',name:'East London',country:'South Africa'},
+  {code:'NGLAG',name:'Lagos (Apapa)',country:'Nigeria'},
+  {code:'NGTIN',name:'Tin Can Island',country:'Nigeria'},
+  {code:'GHTEM',name:'Tema',country:'Ghana'},
+  {code:'CIABJ',name:'Abidjan',country:'Ivory Coast'},
+  {code:'SNDKR',name:'Dakar',country:'Senegal'},
+  {code:'CMMTM',name:'Douala',country:'Cameroon'},
+  {code:'TNTUN',name:'Tunis (La Goulette)',country:'Tunisia'},
+  {code:'DZALG',name:'Algiers',country:'Algeria'},
+  {code:'MACOS',name:'Casablanca',country:'Morocco'},
+  {code:'MATAN',name:'Tangier Med',country:'Morocco'},
+  {code:'LYTIP',name:'Tripoli',country:'Libya'},
+  {code:'SDPZH',name:'Port Sudan',country:'Sudan'},
+  {code:'DJJIB',name:'Djibouti',country:'Djibouti'},
+  {code:'ETADD',name:'Addis Ababa (Dry)',country:'Ethiopia'},
+  {code:'KEYSM',name:'Mombasa',country:'Kenya'},
+  {code:'TZDAR',name:'Dar es Salaam',country:'Tanzania'},
+  {code:'MZMPM',name:'Maputo',country:'Mozambique'},
+  // MIDDLE EAST
+  {code:'IQBSR',name:'Basra',country:'Iraq'},
+  {code:'IQUMQ',name:'Umm Qasr',country:'Iraq'},
+  {code:'KWKWI',name:'Kuwait',country:'Kuwait'},
+  {code:'BHBAH',name:'Bahrain',country:'Bahrain'},
+  {code:'QADOH',name:'Doha (Hamad)',country:'Qatar'},
+  {code:'OMSLL',name:'Salalah',country:'Oman'},
+  {code:'OMMUS',name:'Muscat',country:'Oman'},
+  {code:'ILHFA',name:'Haifa',country:'Israel'},
+  {code:'ILATD',name:'Ashdod',country:'Israel'},
+  {code:'JOAQJ',name:'Aqaba',country:'Jordan'},
+  {code:'LBBEY',name:'Beirut',country:'Lebanon'},
+  {code:'SYRLT',name:'Lattakia',country:'Syria'},
+  {code:'IRBND',name:'Bandar Abbas',country:'Iran'},
+  // AMERICAS
+  {code:'BRSSZ',name:'Santos',country:'Brazil'},
+  {code:'BRRIG',name:'Rio de Janeiro',country:'Brazil'},
+  {code:'BRITO',name:'Itajai',country:'Brazil'},
+  {code:'BRPEC',name:'Pecem',country:'Brazil'},
+  {code:'AREZE',name:'Buenos Aires',country:'Argentina'},
+  {code:'CLSAI',name:'San Antonio',country:'Chile'},
+  {code:'CLIQQ',name:'Iquique',country:'Chile'},
+  {code:'PECLL',name:'Callao (Lima)',country:'Peru'},
+  {code:'COBAQ',name:'Barranquilla',country:'Colombia'},
+  {code:'COBOG',name:'Buenaventura',country:'Colombia'},
+  {code:'MXZLO',name:'Manzanillo',country:'Mexico'},
+  {code:'MXVER',name:'Veracruz',country:'Mexico'},
+  {code:'CAHAL',name:'Halifax',country:'Canada'},
+  {code:'CAVAN',name:'Vancouver',country:'Canada'},
+  {code:'CAMON',name:'Montreal',country:'Canada'},
+  {code:'CATRT',name:'Toronto (Dry)',country:'Canada'},
+  {code:'PAPAI',name:'Panama (Balboa)',country:'Panama'},
+  {code:'PAONX',name:'Colon (Manzanillo)',country:'Panama'},
+  // AUSTRALIA & NZ
+  {code:'AUSYD',name:'Sydney',country:'Australia'},
+  {code:'AUMEL',name:'Melbourne',country:'Australia'},
+  {code:'AUBNE',name:'Brisbane',country:'Australia'},
+  {code:'AUADL',name:'Adelaide',country:'Australia'},
+  {code:'AUPER',name:'Fremantle (Perth)',country:'Australia'},
+  {code:'NZAKL',name:'Auckland',country:'New Zealand'},
+  // RUSSIA & CIS
+  {code:'RULED',name:'St Petersburg',country:'Russia'},
+  {code:'RUNVS',name:'Novorossiysk',country:'Russia'},
+  {code:'RULED2',name:'Vladivostok',country:'Russia'},
+  {code:'UAODS',name:'Odessa',country:'Ukraine'},
+  {code:'GEBUS',name:'Batumi',country:'Georgia'},
+  {code:'KZKGF',name:'Aktau',country:'Kazakhstan'},
+];
+
+// ══════════════════════════════════════════════════
+// CHARGE DESCRIPTIONS
+// ══════════════════════════════════════════════════
+const SEA_CHARGES = {
+  'Ocean Freight': ['Ocean Freight','Basic Ocean Freight','Spot Rate'],
+  'Origin Charges': ['Origin OTHC (OTHC)','Documentation Fee','B/L Fee','VGM Fee','Seal Fee','Export Customs','Cargo Insurance','Origin Port Handling','Stuffing/Loading Fee','ISPS (Origin)'],
+  'Destination Charges': ['Destination DTHC','Destination B/L Fee','Arrival Notice Fee','Delivery Order','Import Customs','CFS Handling','Port Congestion Surcharge','ISPS (Destination)'],
+  'Surcharges': ['BAF (Bunker Adjustment Factor)','LSS (Low Sulphur Surcharge)','EBS (Emergency Bunker Surcharge)','GRI (General Rate Increase)','CAF (Currency Adjustment Factor)','PSS (Peak Season Surcharge)','IMO Surcharge / DG Surcharge','War Risk Surcharge','Suez Canal Surcharge','Panama Canal Surcharge','Port Congestion Surcharge','AMS (Advance Manifest System)','ENS (Entry Summary Declaration)','AFR (Advance Filing Rules – Japan)','ISPS Surcharge'],
+  'LCL Charges': ['LCL Ocean Freight','LCL Origin CFS','LCL Destination CFS','LCL Documentation'],
+  'Other': ['Telex Release Fee','Courier Fee (OBL)','Fumigation Certificate','Phytosanitary Certificate','Certificate of Origin','Pre-Shipment Inspection'],
+};
+
+const TRUCK_CHARGES = {
+  'Origin Trucking': ['Origin Trucking – Port to Factory','Origin Trucking – Factory to Port','Empty Container Repositioning','Chassis / Container Rental','Pre-Cooling (Reefer)','Fumigation (Origin)'],
+  'Destination Trucking': ['Destination Trucking – Port to Warehouse','Destination Trucking – Port to Door','Last Mile Delivery'],
+  'Handling': ['Loading / Stuffing','Unloading / Unstuffing','Lashing & Securing','Crane Hire','Lift-On / Lift-Off (Lo-Lo)','Roll-On / Roll-Off (Ro-Ro)','Inland Container Depot (ICD)','Cross-Stuffing'],
+  'Other': ['Waiting Time / Detention','Overweight Surcharge','Permit / Escort (OOG)','Weighbridge Fee','Road Toll'],
+};
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
 let imoFlag = false;
 let selectedContainers = ['20DV','40HQ'];
+let currentStep = 0;
+let seaRows = [];
+let truckRows = [];
+let notes = [
+  'The above rates are excluding official receipts.',
+  'Destination charges at POD (Port of Discharge) are not included unless otherwise stated.',
+  'Cancellation, amendment, and no-show fees may apply as per carrier policy.',
+  'GRI (General Rate Increase) and War Risk surcharges may apply at the time of shipment.',
+  'Routing, transit time, and vessel schedules are subject to change due to operational reasons.',
+  'Free days are subject to carrier / terminal conditions and may vary.',
+];
 
 const steps = [
   { title: 'Client & Sales Info', sub: 'Start by entering your client and team member details' },
-  { title: 'Route & Cargo', sub: 'Define the shipping route, incoterms, HS code, and cargo nature' },
-  { title: 'Sea Freight Rates', sub: 'Enter ocean freight, OTHC, B/L, and any other sea charges' },
+  { title: 'Route & Cargo', sub: 'Define the shipping route, schedule, incoterms, and cargo details' },
+  { title: 'Sea Freight Rates', sub: 'Enter ocean freight, surcharges, and any other sea charges' },
   { title: 'Trucking Rates', sub: 'Add inland haulage / origin trucking costs' },
   { title: 'Terms & Notes', sub: 'Specify validity conditions and any additional notes' },
-  { title: 'Preview & Export', sub: 'Review and print or save as PDF' }
+  { title: 'Preview & Export', sub: 'Review and print or save as PDF' },
+  { title: 'Quotation History', sub: 'Browse and reload previously saved quotations' },
 ];
 
-let currentStep = 0;
-
+// ══════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════
 function goTo(n) {
   document.getElementById('step-' + currentStep).classList.remove('active');
-  if (currentStep === 5) document.getElementById('step-5').style.display = 'none';
+  if(currentStep === 5) document.getElementById('step-5').style.display = 'none';
   document.getElementById('nav-' + currentStep).classList.remove('active');
 
   currentStep = n;
 
-  if (n < 5) {
+  if(n < 5) {
     document.getElementById('step-' + n).classList.add('active');
     document.getElementById('step-' + n).style.display = '';
     document.getElementById('main-header').style.display = '';
-  } else {
+  } else if(n === 5) {
     document.getElementById('step-5').style.display = 'block';
     document.getElementById('step-5').classList.add('active');
     document.getElementById('main-header').style.display = 'none';
     buildPreview();
+  } else if(n === 6) {
+    document.getElementById('step-6').classList.add('active');
+    document.getElementById('main-header').style.display = '';
+    renderHistory();
   }
 
   document.getElementById('nav-' + n).classList.add('active');
   document.getElementById('step-title').textContent = steps[n].title;
   document.getElementById('step-sub').textContent = steps[n].sub;
   window.scrollTo(0,0);
+  closeAllDropdowns();
 }
+
+// ══════════════════════════════════════════════════
+// PORT AUTOCOMPLETE
+// ══════════════════════════════════════════════════
+function portSearch(fieldId) {
+  const input = document.getElementById(fieldId);
+  const dropdown = document.getElementById(fieldId + '-dropdown');
+  const val = input.value.trim().toLowerCase();
+
+  if(val.length < 1) { dropdown.style.display = 'none'; return; }
+
+  const matches = PORTS.filter(p =>
+    p.name.toLowerCase().includes(val) ||
+    p.code.toLowerCase().includes(val) ||
+    p.country.toLowerCase().includes(val)
+  ).slice(0, 8);
+
+  if(matches.length === 0) { dropdown.style.display = 'none'; return; }
+
+  dropdown.innerHTML = matches.map(p => `
+    <div class="autocomplete-item" onmousedown="selectPort('${fieldId}','${p.name}, ${p.country}','${p.code}')">
+      <span class="autocomplete-code">${p.code}</span>
+      <span>${p.name}, ${p.country}</span>
+    </div>
+  `).join('');
+  dropdown.style.display = 'block';
+}
+
+function selectPort(fieldId, name, code) {
+  document.getElementById(fieldId).value = name;
+  document.getElementById(fieldId + '-dropdown').style.display = 'none';
+  update();
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.autocomplete-dropdown').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.charge-dropdown').forEach(d => d.style.display = 'none');
+}
+
+document.addEventListener('click', function(e) {
+  if(!e.target.closest('.field') && !e.target.closest('.charge-wrap')) {
+    closeAllDropdowns();
+  }
+});
+
+// ══════════════════════════════════════════════════
+// CHARGE DESCRIPTION AUTOCOMPLETE
+// ══════════════════════════════════════════════════
+function buildChargeDropdown(categories, value, rowIndex, type) {
+  const val = value.trim().toLowerCase();
+  let html = '';
+
+  for(const [cat, items] of Object.entries(categories)) {
+    const filtered = val ? items.filter(i => i.toLowerCase().includes(val)) : items;
+    if(filtered.length === 0) continue;
+    html += `<div class="charge-category">${cat}</div>`;
+    filtered.forEach(item => {
+      html += `<div class="charge-item" onmousedown="${type}Rows[${rowIndex}].desc='${item.replace(/'/g,"\\'")}';render${type.charAt(0).toUpperCase()+type.slice(1)}Rows();update()">${item}</div>`;
+    });
+  }
+  return html || '';
+}
+
+// ══════════════════════════════════════════════════
+// SEA FREIGHT ROWS
+// ══════════════════════════════════════════════════
+function renderSeaRows() {
+  const tbody = document.getElementById('sea-rows');
+  tbody.innerHTML = '';
+  seaRows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="charge-wrap">
+          <input value="${escHtml(r.desc)}" 
+            oninput="seaRows[${i}].desc=this.value;showChargeDD('sea-cd-${i}',this.value,${i},'sea');update()"
+            onfocus="showChargeDD('sea-cd-${i}',this.value,${i},'sea')"
+            placeholder="e.g. Ocean Freight">
+          <div class="charge-dropdown" id="sea-cd-${i}" style="display:none"></div>
+        </div>
+      </td>
+      <td>
+        <select onchange="seaRows[${i}].basis=this.value;update()" style="font-size:12px;border:none;border-right:1px solid var(--border);padding:10px;width:100%;outline:none;">
+          <option value="" ${r.basis===''?'selected':''}>Select basis...</option>
+          <optgroup label="── Dry Standard ──">
+            <option value="Per 20'DV" ${r.basis==="Per 20'DV"?'selected':''}>Per 20' DV</option>
+            <option value="Per 40'DV" ${r.basis==="Per 40'DV"?'selected':''}>Per 40' DV</option>
+            <option value="Per 45'DV" ${r.basis==="Per 45'DV"?'selected':''}>Per 45' DV</option>
+          </optgroup>
+          <optgroup label="── High Cube ──">
+            <option value="Per 40'HC" ${r.basis==="Per 40'HC"?'selected':''}>Per 40' HC</option>
+            <option value="Per 45'HC" ${r.basis==="Per 45'HC"?'selected':''}>Per 45' HC</option>
+          </optgroup>
+          <optgroup label="── Reefer ──">
+            <option value="Per 20'RF" ${r.basis==="Per 20'RF"?'selected':''}>Per 20' RF</option>
+            <option value="Per 40'RF" ${r.basis==="Per 40'RF"?'selected':''}>Per 40' RF</option>
+            <option value="Per 40'RF HC" ${r.basis==="Per 40'RF HC"?'selected':''}>Per 40' RF HC</option>
+          </optgroup>
+          <optgroup label="── Special ──">
+            <option value="Per 20'OT" ${r.basis==="Per 20'OT"?'selected':''}>Per 20' OT</option>
+            <option value="Per 40'OT" ${r.basis==="Per 40'OT"?'selected':''}>Per 40' OT</option>
+            <option value="Per 20'FR" ${r.basis==="Per 20'FR"?'selected':''}>Per 20' FR</option>
+            <option value="Per 40'FR" ${r.basis==="Per 40'FR"?'selected':''}>Per 40' FR</option>
+            <option value="Per 20'TK" ${r.basis==="Per 20'TK"?'selected':''}>Per 20' TK</option>
+          </optgroup>
+          <optgroup label="── Per Shipment ──">
+            <option value="Per Shipment" ${r.basis==='Per Shipment'?'selected':''}>Per Shipment</option>
+            <option value="Per Container" ${r.basis==='Per Container'?'selected':''}>Per Container</option>
+            <option value="Per B/L" ${r.basis==='Per B/L'?'selected':''}>Per B/L</option>
+            <option value="Per CBM" ${r.basis==='Per CBM'?'selected':''}>Per CBM (LCL)</option>
+            <option value="Per Ton" ${r.basis==='Per Ton'?'selected':''}>Per Ton</option>
+            <option value="Per W/M" ${r.basis==='Per W/M'?'selected':''}>Per W/M</option>
+          </optgroup>
+        </select>
+      </td>
+      <td><input value="${r.rate}" onchange="seaRows[${i}].rate=this.value;update()" type="number" style="width:90px"></td>
+      <td>
+        <select onchange="seaRows[${i}].currency=this.value;update()" style="border:none;border-right:1px solid var(--border);padding:10px;width:100%;outline:none;">
+          <option ${r.currency==='USD'?'selected':''}>USD</option>
+          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
+          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
+          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
+        </select>
+      </td>
+      <td><input value="${escHtml(r.notes)}" onchange="seaRows[${i}].notes=this.value;update()" placeholder="Optional note"></td>
+      <td><button class="del-btn" onclick="seaRows.splice(${i},1);renderSeaRows();update()">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function showChargeDD(ddId, val, idx, type) {
+  const dd = document.getElementById(ddId);
+  if(!dd) return;
+  const cats = type === 'sea' ? SEA_CHARGES : TRUCK_CHARGES;
+  const html = buildChargeDropdown(cats, val, idx, type);
+  if(html) { dd.innerHTML = html; dd.style.display = 'block'; }
+  else { dd.style.display = 'none'; }
+}
+
+function addSeaRow() {
+  seaRows.push({ desc: '', basis: '', rate: '', currency: 'USD', notes: '' });
+  renderSeaRows();
+}
+
+// ══════════════════════════════════════════════════
+// TRUCKING ROWS
+// ══════════════════════════════════════════════════
+function renderTruckRows() {
+  const tbody = document.getElementById('truck-rows');
+  tbody.innerHTML = '';
+  truckRows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="charge-wrap">
+          <input value="${escHtml(r.desc)}"
+            oninput="truckRows[${i}].desc=this.value;showChargeDD('truck-cd-${i}',this.value,${i},'truck');update()"
+            onfocus="showChargeDD('truck-cd-${i}',this.value,${i},'truck')"
+            placeholder="e.g. Origin Trucking">
+          <div class="charge-dropdown" id="truck-cd-${i}" style="display:none"></div>
+        </div>
+      </td>
+      <td>
+        <select onchange="truckRows[${i}].container=this.value;update()" style="font-size:12px;border:none;border-right:1px solid var(--border);padding:10px;width:100%;outline:none;">
+          <option value="" ${r.container===''?'selected':''}>Select type...</option>
+          <optgroup label="── Dry ──">
+            <option value="20DV" ${r.container==='20DV'?'selected':''}>20' DV</option>
+            <option value="40DV" ${r.container==='40DV'?'selected':''}>40' DV</option>
+            <option value="40HC" ${r.container==='40HC'?'selected':''}>40' HC</option>
+            <option value="45HC" ${r.container==='45HC'?'selected':''}>45' HC</option>
+          </optgroup>
+          <optgroup label="── Reefer ──">
+            <option value="20RF" ${r.container==='20RF'?'selected':''}>20' RF</option>
+            <option value="40RF" ${r.container==='40RF'?'selected':''}>40' RF</option>
+            <option value="40RFHC" ${r.container==='40RFHC'?'selected':''}>40' RF HC</option>
+          </optgroup>
+          <optgroup label="── Special ──">
+            <option value="20OT" ${r.container==='20OT'?'selected':''}>20' OT</option>
+            <option value="40OT" ${r.container==='40OT'?'selected':''}>40' OT</option>
+            <option value="20FR" ${r.container==='20FR'?'selected':''}>20' FR</option>
+            <option value="40FR" ${r.container==='40FR'?'selected':''}>40' FR</option>
+            <option value="LCL" ${r.container==='LCL'?'selected':''}>LCL</option>
+            <option value="BULK" ${r.container==='BULK'?'selected':''}>Bulk</option>
+          </optgroup>
+        </select>
+      </td>
+      <td><input value="${r.rate}" onchange="truckRows[${i}].rate=this.value;update()" type="number"></td>
+      <td>
+        <select onchange="truckRows[${i}].currency=this.value;update()" style="border:none;border-right:1px solid var(--border);padding:10px;width:100%;outline:none;">
+          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
+          <option ${r.currency==='USD'?'selected':''}>USD</option>
+          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
+          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
+        </select>
+      </td>
+      <td><input value="${escHtml(r.notes)}" onchange="truckRows[${i}].notes=this.value;update()" placeholder="Optional"></td>
+      <td><button class="del-btn" onclick="truckRows.splice(${i},1);renderTruckRows();update()">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addTruckRow() {
+  truckRows.push({ desc: '', container: '', rate: '', currency: 'EGP', notes: '' });
+  renderTruckRows();
+}
+
+// ══════════════════════════════════════════════════
+// NOTES
+// ══════════════════════════════════════════════════
+function renderNotes() {
+  const container = document.getElementById('notes-list');
+  container.innerHTML = '';
+  notes.forEach((n, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    div.innerHTML = `
+      <span style="color:#999;font-size:14px;padding-top:2px;">•</span>
+      <input type="text" value="${escHtml(n)}" onchange="notes[${i}]=this.value;update()"
+        style="flex:1;border:1.5px solid #dce3ed;border-radius:8px;padding:9px 14px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;color:#1a2233;"
+        onfocus="this.style.borderColor='#e84c3d'" onblur="this.style.borderColor='#dce3ed'">
+      <button onclick="notes.splice(${i},1);renderNotes();update()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:4px 8px;">✕</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addNote() { notes.push(''); renderNotes(); }
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`; }
+function fmt(n) { if(!n||isNaN(n)) return '—'; return parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function g(id) { return document.getElementById(id)?.value || ''; }
+
+function update() { saveDraft(); }
 
 function updateSales() {
   const nm = document.getElementById('sales-name').value;
@@ -1108,216 +1103,21 @@ function setImo(val) {
 function toggleContainer(btn) {
   btn.classList.toggle('active');
   const val = btn.dataset.val;
-  if (btn.classList.contains('active')) {
-    if (!selectedContainers.includes(val)) selectedContainers.push(val);
-  } else {
-    selectedContainers = selectedContainers.filter(v => v !== val);
-  }
+  if(btn.classList.contains('active')) { if(!selectedContainers.includes(val)) selectedContainers.push(val); }
+  else { selectedContainers = selectedContainers.filter(v => v !== val); }
   update();
 }
 
-// ── SEA FREIGHT ROWS ──
-let seaRows = [];
-function initSeaRows() {
-  seaRows = [];
-  renderSeaRows();
-}
-
-function renderSeaRows() {
-  const tbody = document.getElementById('sea-rows');
-  tbody.innerHTML = '';
-  seaRows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input value="${r.desc}" onchange="seaRows[${i}].desc=this.value;update()" placeholder="e.g. Ocean Freight"></td>
-      <td>
-        <select onchange="seaRows[${i}].basis=this.value;update()" style="font-size:12px;">
-          <option value="" ${r.basis===''?'selected':''}>Select basis...</option>
-          <optgroup label="── Dry Standard ──">
-            <option value="Per 20\'DV" ${r.basis==='Per 20\'DV'?'selected':''}>Per 20' DV — Dry Van</option>
-            <option value="Per 40\'DV" ${r.basis==='Per 40\'DV'?'selected':''}>Per 40' DV — Dry Van</option>
-            <option value="Per 45\'DV" ${r.basis==='Per 45\'DV'?'selected':''}>Per 45' DV — Dry Van</option>
-          </optgroup>
-          <optgroup label="── High Cube ──">
-            <option value="Per 40\'HC" ${r.basis==='Per 40\'HC'?'selected':''}>Per 40' HC — High Cube</option>
-            <option value="Per 45\'HC" ${r.basis==='Per 45\'HC'?'selected':''}>Per 45' HC — High Cube</option>
-          </optgroup>
-          <optgroup label="── Reefer ──">
-            <option value="Per 20\'RF" ${r.basis==='Per 20\'RF'?'selected':''}>Per 20' RF — Reefer</option>
-            <option value="Per 40\'RF" ${r.basis==='Per 40\'RF'?'selected':''}>Per 40' RF — Reefer</option>
-            <option value="Per 40\'RF HC" ${r.basis==='Per 40\'RF HC'?'selected':''}>Per 40' RF HC — Reefer High Cube</option>
-          </optgroup>
-          <optgroup label="── Open Top ──">
-            <option value="Per 20\'OT" ${r.basis==='Per 20\'OT'?'selected':''}>Per 20' OT — Open Top</option>
-            <option value="Per 40\'OT" ${r.basis==='Per 40\'OT'?'selected':''}>Per 40' OT — Open Top</option>
-          </optgroup>
-          <optgroup label="── Flat Rack ──">
-            <option value="Per 20\'FR" ${r.basis==='Per 20\'FR'?'selected':''}>Per 20' FR — Flat Rack</option>
-            <option value="Per 40\'FR" ${r.basis==='Per 40\'FR'?'selected':''}>Per 40' FR — Flat Rack</option>
-          </optgroup>
-          <optgroup label="── Tank ──">
-            <option value="Per 20\'TK" ${r.basis==='Per 20\'TK'?'selected':''}>Per 20' TK — Tank</option>
-            <option value="Per 40\'TK" ${r.basis==='Per 40\'TK'?'selected':''}>Per 40' TK — Tank</option>
-          </optgroup>
-          <optgroup label="── Per Shipment ──">
-            <option value="Per Shipment" ${r.basis==='Per Shipment'?'selected':''}>Per Shipment</option>
-            <option value="Per Container" ${r.basis==='Per Container'?'selected':''}>Per Container</option>
-            <option value="Per B/L" ${r.basis==='Per B/L'?'selected':''}>Per B/L</option>
-            <option value="Per CBM" ${r.basis==='Per CBM'?'selected':''}>Per CBM (LCL)</option>
-            <option value="Per Ton" ${r.basis==='Per Ton'?'selected':''}>Per Ton</option>
-            <option value="Per W/M" ${r.basis==='Per W/M'?'selected':''}>Per W/M (Weight or Measure)</option>
-          </optgroup>
-        </select>
-      </td>
-      <td><input value="${r.rate}" onchange="seaRows[${i}].rate=this.value;update()" type="number" style="width:90px"></td>
-      <td>
-        <select onchange="seaRows[${i}].currency=this.value;update()">
-          <option ${r.currency==='USD'?'selected':''}>USD</option>
-          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
-          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
-          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
-        </select>
-      </td>
-      <td><input value="${r.notes}" onchange="seaRows[${i}].notes=this.value;update()" placeholder="Optional note"></td>
-      <td><button class="del-btn" onclick="seaRows.splice(${i},1);renderSeaRows();update()">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function addSeaRow() {
-  seaRows.push({ desc: '', basis: '', rate: '', currency: 'USD', notes: '' });
-  renderSeaRows();
-}
-
-// ── TRUCKING ROWS ──
-let truckRows = [];
-function initTruckRows() {
-  truckRows = [];
-  renderTruckRows();
-}
-
-function renderTruckRows() {
-  const tbody = document.getElementById('truck-rows');
-  tbody.innerHTML = '';
-  truckRows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input value="${r.desc}" onchange="truckRows[${i}].desc=this.value;update()" placeholder="e.g. Trucking 20DV"></td>
-      <td>
-        <select onchange="truckRows[${i}].container=this.value;update()" style="font-size:12px;">
-          <option value="" ${r.container===''?'selected':''}>Select type...</option>
-          <optgroup label="── Dry Standard ──">
-            <option value="20DV" ${r.container==='20DV'?'selected':''}>20' DV — Dry Van</option>
-            <option value="40DV" ${r.container==='40DV'?'selected':''}>40' DV — Dry Van</option>
-            <option value="45DV" ${r.container==='45DV'?'selected':''}>45' DV — Dry Van</option>
-          </optgroup>
-          <optgroup label="── High Cube ──">
-            <option value="40HC" ${r.container==='40HC'?'selected':''}>40' HC — High Cube</option>
-            <option value="45HC" ${r.container==='45HC'?'selected':''}>45' HC — High Cube</option>
-          </optgroup>
-          <optgroup label="── Reefer ──">
-            <option value="20RF" ${r.container==='20RF'?'selected':''}>20' RF — Reefer</option>
-            <option value="40RF" ${r.container==='40RF'?'selected':''}>40' RF — Reefer</option>
-            <option value="40RFHC" ${r.container==='40RFHC'?'selected':''}>40' RF HC — Reefer High Cube</option>
-          </optgroup>
-          <optgroup label="── Open Top ──">
-            <option value="20OT" ${r.container==='20OT'?'selected':''}>20' OT — Open Top</option>
-            <option value="40OT" ${r.container==='40OT'?'selected':''}>40' OT — Open Top</option>
-          </optgroup>
-          <optgroup label="── Flat Rack ──">
-            <option value="20FR" ${r.container==='20FR'?'selected':''}>20' FR — Flat Rack</option>
-            <option value="40FR" ${r.container==='40FR'?'selected':''}>40' FR — Flat Rack</option>
-          </optgroup>
-          <optgroup label="── Tank ──">
-            <option value="20TK" ${r.container==='20TK'?'selected':''}>20' TK — Tank</option>
-            <option value="40TK" ${r.container==='40TK'?'selected':''}>40' TK — Tank</option>
-          </optgroup>
-          <optgroup label="── Special ──">
-            <option value="20ISO" ${r.container==='20ISO'?'selected':''}>20' ISO Tank</option>
-            <option value="LCL" ${r.container==='LCL'?'selected':''}>LCL — Less than Container Load</option>
-            <option value="BULK" ${r.container==='BULK'?'selected':''}>Bulk / Break Bulk</option>
-          </optgroup>
-        </select>
-      </td>
-      <td><input value="${r.rate}" onchange="truckRows[${i}].rate=this.value;update()" type="number"></td>
-      <td>
-        <select onchange="truckRows[${i}].currency=this.value;update()">
-          <option ${r.currency==='EGP'?'selected':''}>EGP</option>
-          <option ${r.currency==='USD'?'selected':''}>USD</option>
-          <option ${r.currency==='EUR'?'selected':''}>EUR</option>
-          <option ${r.currency==='GBP'?'selected':''}>GBP</option>
-        </select>
-      </td>
-      <td><input value="${r.notes}" onchange="truckRows[${i}].notes=this.value;update()" placeholder="Optional"></td>
-      <td><button class="del-btn" onclick="truckRows.splice(${i},1);renderTruckRows();update()">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function addTruckRow() {
-  truckRows.push({ desc: '', container: '', rate: '', currency: 'EGP', notes: '' });
-  renderTruckRows();
-}
-
-// ── NOTES ──
-let notes = [
-  'The above rates are excluding official receipts.',
-  'Destination charges at POD (Port of Discharge) are not included unless otherwise stated.',
-  'Cancellation, amendment, and no-show fees may apply as per carrier policy.',
-  'GRI (General Rate Increase) and War Risk surcharges may apply at the time of shipment.',
-  'Routing, transit time, and vessel schedules are subject to change due to operational reasons.'
-];
-
-function renderNotes() {
-  const container = document.getElementById('notes-list');
-  container.innerHTML = '';
-  notes.forEach((n, i) => {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex;gap:8px;align-items:center;';
-    div.innerHTML = `
-      <span style="color:#999;font-size:14px;padding-top:2px;">•</span>
-      <input type="text" value="${n}" onchange="notes[${i}]=this.value;update()"
-        style="flex:1;border:1.5px solid #dce3ed;border-radius:8px;padding:9px 14px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;outline:none;color:#1a2233;"
-        onfocus="this.style.borderColor='#e84c3d'" onblur="this.style.borderColor='#dce3ed'">
-      <button onclick="notes.splice(${i},1);renderNotes();update()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:4px 8px;">✕</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function addNote() {
-  notes.push('');
-  renderNotes();
-}
-
-function update() { /* real-time — preview rebuilt on goTo(5) */ }
-
-// ── FORMAT DATE ──
-function fmtDate(d) {
-  if (!d) return '—';
-  const [y,m,day] = d.split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
-}
-
-function fmt(n) {
-  if (!n || isNaN(n)) return '—';
-  return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-// ── BUILD PDF PREVIEW ──
+// ══════════════════════════════════════════════════
+// BUILD PDF PREVIEW
+// ══════════════════════════════════════════════════
 function buildPreview() {
-  const g = id => document.getElementById(id)?.value || '';
-
   const clientName = g('client-name') || '—';
   const contactPerson = g('client-contact') || '—';
   const clientEmail = g('client-email') || '—';
   const clientPhone = g('client-phone') || '—';
   const salesName = g('sales-name') || '—';
   const salesEmail = g('sales-email') || '—';
-  const salesPhone = g('sales-phone') || '';
   const qDate = fmtDate(g('q-date'));
   const qValid = fmtDate(g('q-valid'));
   const pol = g('pol') || '—';
@@ -1325,57 +1125,43 @@ function buildPreview() {
   const incoterms = g('incoterms') || '—';
   const hsCode = g('hs-code');
   const commodity = g('commodity');
+  const transitTime = g('transit-time');
+  const vesselName = g('vessel-name');
+  const etd = fmtDate(g('etd'));
+  const eta = fmtDate(g('eta'));
+  const freeDaysOrigin = g('free-days-origin');
+  const freeDaysDest = g('free-days-dest');
 
-  // Cargo tags
   let tagsHTML = `<span class="cargo-tag incoterms">${incoterms}</span>`;
-  if (hsCode) tagsHTML += `<span class="cargo-tag hs">HS: ${hsCode}</span>`;
-  if (imoFlag) tagsHTML += `<span class="cargo-tag imo">⚠️ IMO / DG Cargo</span>`;
-  if (commodity) tagsHTML += `<span class="cargo-tag container">${commodity}</span>`;
+  if(hsCode) tagsHTML += `<span class="cargo-tag hs">HS: ${hsCode}</span>`;
+  if(imoFlag) tagsHTML += `<span class="cargo-tag imo">⚠️ IMO / DG Cargo</span>`;
+  if(commodity) tagsHTML += `<span class="cargo-tag container">${commodity}</span>`;
   selectedContainers.forEach(c => tagsHTML += `<span class="cargo-tag container">${c}</span>`);
 
-  // Sea freight table rows
   let seaHTML = '';
-  // Group by currency for totals
   const totals = {};
   seaRows.forEach(r => {
     const amt = parseFloat(r.rate) || 0;
-    seaHTML += `
-      <tr>
-        <td>${r.desc || '—'}</td>
-        <td>${r.basis || '—'}</td>
-        <td class="amount">${fmt(r.rate)}</td>
-        <td>${r.currency}</td>
-        <td>${r.notes || ''}</td>
-      </tr>`;
-    totals[r.currency] = (totals[r.currency] || 0) + amt;
+    seaHTML += `<tr><td>${r.desc||'—'}</td><td>${r.basis||'—'}</td><td class="amount">${fmt(r.rate)}</td><td>${r.currency}</td><td>${r.notes||''}</td></tr>`;
+    totals[r.currency] = (totals[r.currency]||0) + amt;
   });
+  let totalStr = Object.entries(totals).map(([c,v])=>`${fmt(v)} ${c}`).join(' + ') || '—';
 
-  let totalStr = Object.entries(totals).map(([c, v]) => `${fmt(v)} ${c}`).join(' + ') || '—';
-
-  // Trucking table rows
   let truckHTML = '';
   const truckTotals = {};
   truckRows.forEach(r => {
     const amt = parseFloat(r.rate) || 0;
-    truckHTML += `
-      <tr>
-        <td>${r.desc || '—'}</td>
-        <td>${r.container || '—'}</td>
-        <td class="amount">${fmt(r.rate)}</td>
-        <td>${r.currency}</td>
-        <td>${r.notes || ''}</td>
-      </tr>`;
-    truckTotals[r.currency] = (truckTotals[r.currency] || 0) + amt;
+    truckHTML += `<tr><td>${r.desc||'—'}</td><td>${r.container||'—'}</td><td class="amount">${fmt(r.rate)}</td><td>${r.currency}</td><td>${r.notes||''}</td></tr>`;
+    truckTotals[r.currency] = (truckTotals[r.currency]||0) + amt;
   });
-
-  let truckTotalStr = Object.entries(truckTotals).map(([c,v]) => `${fmt(v)} ${c}`).join(' + ') || '—';
-
-  // Notes
+  let truckTotalStr = Object.entries(truckTotals).map(([c,v])=>`${fmt(v)} ${c}`).join(' + ') || '—';
   let notesHTML = notes.map(n => `<li>${n}</li>`).join('');
+
+  const hasSchedule = transitTime || vesselName || (etd !== '—') || (eta !== '—') || freeDaysOrigin || freeDaysDest;
 
   document.getElementById('pdf-preview').innerHTML = `
     <div class="pdf-header">
-            <div class="pdf-logo">
+      <div class="pdf-logo">
         <div class="pdf-logo-mark">M</div>
         <div>
           <div class="pdf-logo-txt">LOGISTICS</div>
@@ -1388,205 +1174,221 @@ function buildPreview() {
         <p>Prepared by: <span>${salesName}</span></p>
       </div>
     </div>
-
     <div class="pdf-body">
-
       <div class="pdf-section-title">Company & Contact</div>
       <div class="pdf-info-grid">
-        <div class="pdf-info-item">
-          <label>Client</label>
-          <span>${clientName}</span>
-        </div>
-        <div class="pdf-info-item">
-          <label>Contact Person</label>
-          <span>${contactPerson}</span>
-        </div>
-        <div class="pdf-info-item">
-          <label>Phone</label>
-          <span>${clientPhone}</span>
-        </div>
-        <div class="pdf-info-item" style="grid-column:span 2">
-          <label>Email</label>
-          <span class="sub">${clientEmail}</span>
-        </div>
-        <div class="pdf-info-item">
-          <label>Sales Rep</label>
-          <span>${salesName}</span>
-          <span class="sub">${salesEmail}</span>
-        </div>
+        <div class="pdf-info-item"><label>Client</label><span>${clientName}</span></div>
+        <div class="pdf-info-item"><label>Contact Person</label><span>${contactPerson}</span></div>
+        <div class="pdf-info-item"><label>Phone</label><span>${clientPhone}</span></div>
+        <div class="pdf-info-item" style="grid-column:span 2"><label>Email</label><span class="sub">${clientEmail}</span></div>
+        <div class="pdf-info-item"><label>Sales Rep</label><span>${salesName}</span><span class="sub">${salesEmail}</span></div>
       </div>
 
       <div class="pdf-section-title" style="margin-top:4px">Routing</div>
       <div class="pdf-route">
-        <div class="pdf-port">
-          <div class="pdf-port-label">Port of Loading</div>
-          <div class="pdf-port-name">${pol}</div>
-          <div class="pdf-port-code">POL</div>
-        </div>
-        <div class="route-arrow">
-          <div class="arrow-line"></div>
-          <div class="arrow-ship">🚢</div>
-          <div class="arrow-line"></div>
-        </div>
-        <div class="pdf-port">
-          <div class="pdf-port-label">Port of Discharge</div>
-          <div class="pdf-port-name">${pod}</div>
-          <div class="pdf-port-code">POD</div>
-        </div>
+        <div class="pdf-port"><div class="pdf-port-label">Port of Loading</div><div class="pdf-port-name">${pol}</div><div class="pdf-port-code">POL</div></div>
+        <div class="route-arrow"><div class="arrow-line"></div><div class="arrow-ship">🚢</div><div class="arrow-line"></div></div>
+        <div class="pdf-port"><div class="pdf-port-label">Port of Discharge</div><div class="pdf-port-name">${pod}</div><div class="pdf-port-code">POD</div></div>
       </div>
+
+      ${hasSchedule ? `
+      <div class="pdf-section-title">Vessel Schedule & Free Days</div>
+      <div class="pdf-schedule-bar">
+        ${transitTime ? `<div class="pdf-sched-item"><label>Transit Time</label><span>${transitTime}</span></div>` : ''}
+        ${vesselName ? `<div class="pdf-sched-item"><label>Vessel / Line</label><span>${vesselName}</span></div>` : ''}
+        ${etd !== '—' ? `<div class="pdf-sched-item"><label>ETD</label><span>${etd}</span></div>` : ''}
+        ${eta !== '—' ? `<div class="pdf-sched-item"><label>ETA</label><span>${eta}</span></div>` : ''}
+        ${freeDaysOrigin ? `<div class="pdf-sched-item"><label>Origin Free Days</label><span>${freeDaysOrigin}</span></div>` : ''}
+        ${freeDaysDest ? `<div class="pdf-sched-item"><label>Dest. Free Days</label><span>${freeDaysDest}</span></div>` : ''}
+      </div>` : ''}
 
       <div class="pdf-section-title">Cargo Details</div>
       <div class="cargo-tags" style="margin-bottom:20px;">${tagsHTML}</div>
 
       <div class="section-header-bar">🌊 Sea Freight</div>
       <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>Charge Description</th>
-            <th>Basis</th>
-            <th class="amount">Rate</th>
-            <th>Currency</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Charge Description</th><th>Basis</th><th class="amount">Rate</th><th>Currency</th><th>Notes</th></tr></thead>
         <tbody>
           ${seaHTML}
-          <tr class="total-row">
-            <td colspan="2"><strong>Total Sea Freight</strong></td>
-            <td class="amount" colspan="3">${totalStr}</td>
-          </tr>
+          <tr class="total-row"><td colspan="2"><strong>Total Sea Freight</strong></td><td class="amount" colspan="3">${totalStr}</td></tr>
         </tbody>
       </table>
 
       ${truckRows.length > 0 ? `
       <div class="section-header-bar" style="margin-top:16px">🚛 Trucking / Inland</div>
       <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>Charge Description</th>
-            <th>Container</th>
-            <th class="amount">Rate</th>
-            <th>Currency</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Charge Description</th><th>Container</th><th class="amount">Rate</th><th>Currency</th><th>Notes</th></tr></thead>
         <tbody>
           ${truckHTML}
-          <tr class="total-row">
-            <td colspan="2"><strong>Total Trucking</strong></td>
-            <td class="amount" colspan="3">${truckTotalStr}</td>
-          </tr>
+          <tr class="total-row"><td colspan="2"><strong>Total Trucking</strong></td><td class="amount" colspan="3">${truckTotalStr}</td></tr>
         </tbody>
-      </table>
-      ` : ''}
+      </table>` : ''}
 
       ${notes.length > 0 ? `
       <div class="pdf-notes">
         <div class="pdf-notes-title">📋 Terms & Notes</div>
         <ul>${notesHTML}</ul>
       </div>` : ''}
-
     </div>
-
     <div class="pdf-footer">
-      <div class="pdf-footer-text">Generated ${new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})}</div>
+      <div class="pdf-footer-text">Generated ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div>
       <div class="pdf-footer-name">${salesName} · ${salesEmail}</div>
     </div>
   `;
 }
 
-// ── INIT ──
-(function() {
-  // Set today's date
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth()+1).padStart(2,'0');
-  const dd = String(today.getDate()).padStart(2,'0');
-  document.getElementById('q-date').value = `${yyyy}-${mm}-${dd}`;
-  const valid = new Date(today.getTime() + 30*24*60*60*1000);
-  document.getElementById('q-valid').value = `${valid.getFullYear()}-${String(valid.getMonth()+1).padStart(2,'0')}-${String(valid.getDate()).padStart(2,'0')}`;
+// ══════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('m_history') || '[]'); } catch(e) { return []; }
+}
+function saveHistory(arr) { localStorage.setItem('m_history', JSON.stringify(arr)); }
 
-  setImo(false);
-  initSeaRows();
-  initTruckRows();
-  renderNotes();
-})();
-
-// ── ENHANCED FEATURES ──
-
-function downloadPDF() {
-  const element = document.getElementById('pdf-preview');
-
-  const opt = {
-    margin: 0.3,
-    filename: `Quotation-${Date.now()}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 2 },
-    jsPDF: {
-      unit: 'in',
-      format: 'a4',
-      orientation: 'portrait'
-    }
-  };
-
-  html2pdf().set(opt).from(element).save();
+function saveToHistory() {
+  const suggested = `${g('client-name') || 'Client'} — ${g('pol') || 'POL'} → ${g('pod') || 'POD'}`;
+  document.getElementById('save-name').value = suggested;
+  document.getElementById('save-modal').style.display = 'flex';
 }
 
-function saveDraft() {
-  const data = {
-    clientName: document.getElementById('client-name')?.value || '',
-    clientEmail: document.getElementById('client-email')?.value || '',
-    pol: document.getElementById('pol')?.value || '',
-    pod: document.getElementById('pod')?.value || '',
-    salesName: document.getElementById('sales-name')?.value || '',
-    seaRows,
-    truckRows,
-    notes
-  };
+function confirmSave() {
+  const name = document.getElementById('save-name').value.trim() || 'Unnamed Quotation';
+  const snapshot = captureState();
+  snapshot.name = name;
+  snapshot.savedAt = new Date().toISOString();
 
-  localStorage.setItem('quotationDraft', JSON.stringify(data));
+  const arr = getHistory();
+  arr.unshift(snapshot);
+  if(arr.length > 50) arr.length = 50;
+  saveHistory(arr);
+
+  document.getElementById('save-modal').style.display = 'none';
+  alert('✅ Quotation saved to history!');
+}
+
+function captureState() {
+  return {
+    clientName: g('client-name'), clientContact: g('client-contact'), clientEmail: g('client-email'), clientPhone: g('client-phone'),
+    salesName: g('sales-name'), salesEmail: g('sales-email'), salesPhone: g('sales-phone'),
+    qDate: g('q-date'), qValid: g('q-valid'),
+    pol: g('pol'), pod: g('pod'), incoterms: g('incoterms'),
+    commodity: g('commodity'), hsCode: g('hs-code'),
+    transitTime: g('transit-time'), vesselName: g('vessel-name'), etd: g('etd'), eta: g('eta'),
+    freeDaysOrigin: g('free-days-origin'), freeDaysDest: g('free-days-dest'),
+    imoFlag, selectedContainers: [...selectedContainers],
+    seaRows: JSON.parse(JSON.stringify(seaRows)),
+    truckRows: JSON.parse(JSON.stringify(truckRows)),
+    notes: [...notes],
+  };
+}
+
+function loadState(s) {
+  const set = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; };
+  set('client-name', s.clientName); set('client-contact', s.clientContact); set('client-email', s.clientEmail); set('client-phone', s.clientPhone);
+  set('sales-name', s.salesName); set('sales-email', s.salesEmail); set('sales-phone', s.salesPhone);
+  set('q-date', s.qDate); set('q-valid', s.qValid);
+  set('pol', s.pol); set('pod', s.pod); set('incoterms', s.incoterms);
+  set('commodity', s.commodity); set('hs-code', s.hsCode);
+  set('transit-time', s.transitTime); set('vessel-name', s.vesselName); set('etd', s.etd); set('eta', s.eta);
+  set('free-days-origin', s.freeDaysOrigin); set('free-days-dest', s.freeDaysDest);
+
+  imoFlag = s.imoFlag || false;
+  setImo(imoFlag);
+  selectedContainers = s.selectedContainers || ['20DV','40HQ'];
+  document.querySelectorAll('#container-types .toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', selectedContainers.includes(btn.dataset.val));
+  });
+  seaRows = s.seaRows || [];
+  truckRows = s.truckRows || [];
+  notes = s.notes || [];
+  renderSeaRows(); renderTruckRows(); renderNotes(); updateSales();
+}
+
+function renderHistory() {
+  const arr = getHistory();
+  const container = document.getElementById('history-container');
+  if(arr.length === 0) {
+    container.innerHTML = '<div class="history-empty">📭 No saved quotations yet.<br><small>Complete a quotation and click Save to store it here.</small></div>';
+    return;
+  }
+  container.innerHTML = `<div class="history-grid">${arr.map((q, i) => `
+    <div class="history-card">
+      <div class="history-card-icon">📄</div>
+      <div class="history-card-body">
+        <div class="history-card-title">${escHtml(q.name || 'Unnamed')}</div>
+        <div class="history-card-route">${escHtml(q.pol||'?')} → ${escHtml(q.pod||'?')}</div>
+        <div class="history-card-meta">${escHtml(q.clientName||'No client')} · ${q.savedAt ? new Date(q.savedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''}</div>
+      </div>
+      <div class="history-card-actions">
+        <button class="history-btn history-btn-load" onclick="loadFromHistory(${i})">Load</button>
+        <button class="history-btn history-btn-del" onclick="deleteHistory(${i})">Delete</button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+function loadFromHistory(i) {
+  const arr = getHistory();
+  if(!arr[i]) return;
+  if(!confirm('Load this quotation? Current data will be replaced.')) return;
+  loadState(arr[i]);
+  saveDraft();
+  goTo(0);
+}
+
+function deleteHistory(i) {
+  if(!confirm('Delete this quotation from history?')) return;
+  const arr = getHistory();
+  arr.splice(i, 1);
+  saveHistory(arr);
+  renderHistory();
+}
+
+// ══════════════════════════════════════════════════
+// DRAFT (localStorage)
+// ══════════════════════════════════════════════════
+function saveDraft() {
+  const data = captureState();
+  localStorage.setItem('m_draft', JSON.stringify(data));
 }
 
 function loadDraft() {
-  const saved = localStorage.getItem('quotationDraft');
-
-  if (!saved) return;
-
-  const data = JSON.parse(saved);
-
-  if(document.getElementById('client-name')) {
-    document.getElementById('client-name').value = data.clientName || '';
-    document.getElementById('client-email').value = data.clientEmail || '';
-    document.getElementById('pol').value = data.pol || '';
-    document.getElementById('pod').value = data.pod || '';
-    document.getElementById('sales-name').value = data.salesName || '';
-  }
-
-  seaRows = data.seaRows || seaRows;
-  truckRows = data.truckRows || truckRows;
-  notes = data.notes || notes;
-
-  renderSeaRows();
-  renderTruckRows();
-  renderNotes();
-  updateSales();
+  const saved = localStorage.getItem('m_draft');
+  if(!saved) return;
+  try { loadState(JSON.parse(saved)); } catch(e) {}
 }
 
+// ══════════════════════════════════════════════════
+// PDF DOWNLOAD
+// ══════════════════════════════════════════════════
+function downloadPDF() {
+  const el = document.getElementById('pdf-preview');
+  const opt = {
+    margin: 0.3,
+    filename: `M-Logistics-Quote-${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
 function login() {
   const validUsers = ['Samar', 'Zeyad', 'Merna'];
   const validPassword = '1234';
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
-
-  if (validUsers.includes(username) && password === validPassword) {
-    localStorage.setItem('loggedIn', 'true');
+  if(validUsers.includes(username) && password === validPassword) {
+    localStorage.setItem('loggedIn','true');
     localStorage.setItem('loggedInUser', username);
     document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('topbar-user').textContent = username;
     errEl.style.display = 'none';
-  } else {
-    errEl.style.display = 'block';
-  }
+  } else { errEl.style.display = 'block'; }
 }
 
 function logout() {
@@ -1595,28 +1397,38 @@ function logout() {
 }
 
 function newQuotation() {
-  if(confirm('Start a new quotation?')) {
-    localStorage.removeItem('quotationDraft');
+  if(confirm('Start a new quotation? Current unsaved data will be cleared.')) {
+    localStorage.removeItem('m_draft');
     location.reload();
   }
 }
 
-const originalUpdate = update;
-update = function() {
-  originalUpdate();
-  saveDraft();
-};
-
-window.addEventListener('load', () => {
-  const logged = localStorage.getItem('loggedIn');
-
-  if(logged === 'true') {
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+(function() {
+  // Check login
+  if(localStorage.getItem('loggedIn') === 'true') {
     document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('topbar-user').textContent = localStorage.getItem('loggedInUser') || '—';
   }
 
-  loadDraft();
-});
+  // Set today / +30 days
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  document.getElementById('q-date').value = todayStr;
+  const valid = new Date(today.getTime() + 30*24*60*60*1000);
+  document.getElementById('q-valid').value = `${valid.getFullYear()}-${pad(valid.getMonth()+1)}-${pad(valid.getDate())}`;
 
+  setImo(false);
+  renderSeaRows();
+  renderTruckRows();
+  renderNotes();
+
+  // Load draft
+  loadDraft();
+})();
 </script>
 </body>
 </html>
