@@ -82,22 +82,52 @@
   /* PORT AUTOCOMPLETE */
   .autocomplete-dropdown {
     position: absolute; top: 100%; left: 0; right: 0; background: white;
-    border: 1.5px solid var(--accent); border-top: none; border-radius: 0 0 8px 8px;
-    max-height: 200px; overflow-y: auto; z-index: 1000;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border: 1.5px solid var(--accent); border-top: none; border-radius: 0 0 10px 10px;
+    max-height: 220px; overflow-y: auto; z-index: 9999;
+    box-shadow: 0 12px 32px rgba(15,30,53,0.18);
   }
-  .autocomplete-item { padding: 9px 14px; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .autocomplete-item:hover, .autocomplete-item.selected { background: rgba(232,76,61,0.06); }
-  .autocomplete-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: #f0f4ff; padding: 1px 6px; border-radius: 4px; flex-shrink: 0; }
+  .autocomplete-item { padding: 10px 14px; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f4f8; }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover { background: rgba(204,21,21,0.06); color: var(--navy); }
+  .autocomplete-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: white; background: var(--navy); padding: 2px 7px; border-radius: 5px; flex-shrink: 0; letter-spacing: 0.05em; }
 
-  /* CHARGE DESCRIPTION AUTOCOMPLETE (inline in table) */
+  /* FLOATING DROPDOWN PORTAL (fixed to viewport) */
+  #float-dropdown {
+    position: fixed;
+    background: white;
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 99999;
+    box-shadow: 0 12px 40px rgba(15,30,53,0.22);
+    display: none;
+    min-width: 260px;
+  }
+  #float-dropdown .dd-item {
+    padding: 10px 14px; font-size: 13px; cursor: pointer;
+    color: var(--text); display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #f0f4f8; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  #float-dropdown .dd-item:last-child { border-bottom: none; }
+  #float-dropdown .dd-item:hover { background: rgba(204,21,21,0.06); color: var(--navy); }
+  #float-dropdown .dd-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: white; background: var(--navy); padding: 2px 7px; border-radius: 5px; flex-shrink: 0; }
+  #float-dropdown .dd-category {
+    padding: 6px 14px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); background: #f6f8fb;
+    border-bottom: 1px solid var(--border); font-family: 'IBM Plex Sans', sans-serif;
+    position: sticky; top: 0;
+  }
+  #float-dropdown .dd-charge-item {
+    padding: 9px 14px; font-size: 13px; cursor: pointer; color: var(--text);
+    border-bottom: 1px solid #f0f4f8; font-family: 'IBM Plex Sans', sans-serif;
+  }
+  #float-dropdown .dd-charge-item:hover { background: rgba(204,21,21,0.06); color: var(--accent); }
+
+  /* CHARGE WRAP */
   .charge-wrap { position: relative; width: 100%; }
-  .charge-wrap input { width: 100%; border: none; border-right: 1px solid var(--border); padding: 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; outline: none; }
-  .charge-wrap input:focus { background: rgba(232,76,61,0.04); }
-  .charge-dropdown { position: absolute; top: 100%; left: 0; min-width: 240px; background: white; border: 1.5px solid var(--accent); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 180px; overflow-y: auto; }
-  .charge-item { padding: 8px 12px; font-size: 12px; cursor: pointer; color: var(--text); }
-  .charge-item:hover { background: rgba(232,76,61,0.06); color: var(--accent); }
-  .charge-category { padding: 5px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: #f8fafd; border-bottom: 1px solid var(--border); }
+  .charge-wrap input { width: 100%; border: none; border-right: 1px solid var(--border); padding: 10px; font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: var(--text); background: white; outline: none; transition: background 0.15s; }
+  .charge-wrap input:focus { background: #fffaf9; }
 
   /* RATES TABLE */
   .rates-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -315,6 +345,9 @@
   </div>
 </div>
 
+<!-- FLOATING DROPDOWN PORTAL -->
+<div id="float-dropdown"></div>
+
 <!-- TOPBAR -->
 <div class="topbar" style="margin:16px 16px 0">
   <div class="topbar-left">
@@ -401,13 +434,11 @@
         <div class="form-grid cols-3">
           <div class="field" id="pol-field">
             <label>Port of Loading (POL)</label>
-            <input type="text" id="pol" placeholder="Search port name or code..." oninput="portSearch('pol')" autocomplete="off">
-            <div class="autocomplete-dropdown" id="pol-dropdown" style="display:none"></div>
+            <input type="text" id="pol" placeholder="Search port name or code..." oninput="portSearch('pol')" onfocus="portSearch('pol')" autocomplete="off">
           </div>
           <div class="field" id="pod-field">
             <label>Port of Discharge (POD)</label>
-            <input type="text" id="pod" placeholder="Search port name or code..." oninput="portSearch('pod')" autocomplete="off">
-            <div class="autocomplete-dropdown" id="pod-dropdown" style="display:none"></div>
+            <input type="text" id="pod" placeholder="Search port name or code..." oninput="portSearch('pod')" onfocus="portSearch('pod')" autocomplete="off">
           </div>
           <div class="field">
             <label>Incoterms</label>
@@ -847,65 +878,109 @@ function goTo(n) {
 }
 
 // ══════════════════════════════════════════════════
+// FLOATING DROPDOWN PORTAL
+// ══════════════════════════════════════════════════
+let _floatTarget = null; // which input owns the dropdown
+
+function showFloatDD(anchorEl, html, onClose) {
+  const dd = document.getElementById('float-dropdown');
+  dd.innerHTML = html;
+  dd._onClose = onClose || null;
+
+  const rect = anchorEl.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const ddHeight = Math.min(240, dd.scrollHeight || 240);
+
+  dd.style.width = Math.max(rect.width, 280) + 'px';
+  dd.style.left = rect.left + 'px';
+
+  if(spaceBelow >= ddHeight || spaceBelow >= 140) {
+    // show below
+    dd.style.top = (rect.bottom + window.scrollY + 2) + 'px';
+    dd.style.bottom = '';
+  } else {
+    // show above
+    dd.style.top = (rect.top + window.scrollY - ddHeight - 4) + 'px';
+    dd.style.bottom = '';
+  }
+
+  dd.style.display = 'block';
+  _floatTarget = anchorEl;
+}
+
+function hideFloatDD() {
+  const dd = document.getElementById('float-dropdown');
+  dd.style.display = 'none';
+  _floatTarget = null;
+}
+
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('float-dropdown');
+  if(dd.style.display === 'block' && !dd.contains(e.target) && e.target !== _floatTarget) {
+    hideFloatDD();
+  }
+});
+
+window.addEventListener('scroll', function() { hideFloatDD(); }, true);
+window.addEventListener('resize', function() { hideFloatDD(); });
+
+// ══════════════════════════════════════════════════
 // PORT AUTOCOMPLETE
 // ══════════════════════════════════════════════════
 function portSearch(fieldId) {
   const input = document.getElementById(fieldId);
-  const dropdown = document.getElementById(fieldId + '-dropdown');
   const val = input.value.trim().toLowerCase();
-
-  if(val.length < 1) { dropdown.style.display = 'none'; return; }
+  if(val.length < 1) { hideFloatDD(); return; }
 
   const matches = PORTS.filter(p =>
     p.name.toLowerCase().includes(val) ||
     p.code.toLowerCase().includes(val) ||
     p.country.toLowerCase().includes(val)
-  ).slice(0, 8);
+  ).slice(0, 10);
 
-  if(matches.length === 0) { dropdown.style.display = 'none'; return; }
+  if(matches.length === 0) { hideFloatDD(); return; }
 
-  dropdown.innerHTML = matches.map(p => `
-    <div class="autocomplete-item" onmousedown="selectPort('${fieldId}','${p.name}, ${p.country}','${p.code}')">
-      <span class="autocomplete-code">${p.code}</span>
-      <span>${p.name}, ${p.country}</span>
+  const html = matches.map(p => `
+    <div class="dd-item" onmousedown="selectPort('${fieldId}',${JSON.stringify(p.name + ', ' + p.country)})">
+      <span class="dd-code">${p.code}</span>
+      <span>${p.name}, <span style="color:var(--muted);font-size:12px">${p.country}</span></span>
     </div>
   `).join('');
-  dropdown.style.display = 'block';
+
+  showFloatDD(input, html);
 }
 
-function selectPort(fieldId, name, code) {
-  document.getElementById(fieldId).value = name;
-  document.getElementById(fieldId + '-dropdown').style.display = 'none';
+function selectPort(fieldId, displayName) {
+  document.getElementById(fieldId).value = displayName;
+  hideFloatDD();
   update();
 }
 
-function closeAllDropdowns() {
-  document.querySelectorAll('.autocomplete-dropdown').forEach(d => d.style.display = 'none');
-  document.querySelectorAll('.charge-dropdown').forEach(d => d.style.display = 'none');
-}
-
-document.addEventListener('click', function(e) {
-  if(!e.target.closest('.field') && !e.target.closest('.charge-wrap')) {
-    closeAllDropdowns();
-  }
-});
+function closeAllDropdowns() { hideFloatDD(); }
 
 // ══════════════════════════════════════════════════
 // CHARGE DESCRIPTION AUTOCOMPLETE
 // ══════════════════════════════════════════════════
-function buildChargeDropdown(categories, value, rowIndex, type) {
+function buildChargeHTML(categories, value, rowIndex, type) {
   const val = value.trim().toLowerCase();
   let html = '';
-
   for(const [cat, items] of Object.entries(categories)) {
     const filtered = val ? items.filter(i => i.toLowerCase().includes(val)) : items;
     if(filtered.length === 0) continue;
-    html += `<div class="charge-category">${cat}</div>`;
+    html += `<div class="dd-category">${cat}</div>`;
     filtered.forEach(item => {
-      html += `<div class="charge-item" onmousedown="${type}Rows[${rowIndex}].desc='${item.replace(/'/g,"\\'")}';render${type.charAt(0).toUpperCase()+type.slice(1)}Rows();update()">${item}</div>`;
+      const safe = item.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html += `<div class="dd-charge-item" onmousedown="pickCharge(${rowIndex},'${type}',${JSON.stringify(item)})">${item}</div>`;
     });
   }
-  return html || '';
+  return html;
+}
+
+function pickCharge(idx, type, value) {
+  if(type === 'sea') { seaRows[idx].desc = value; renderSeaRows(); }
+  else { truckRows[idx].desc = value; renderTruckRows(); }
+  hideFloatDD();
+  update();
 }
 
 // ══════════════════════════════════════════════════
@@ -920,10 +995,9 @@ function renderSeaRows() {
       <td>
         <div class="charge-wrap">
           <input value="${escHtml(r.desc)}" 
-            oninput="seaRows[${i}].desc=this.value;showChargeDD('sea-cd-${i}',this.value,${i},'sea');update()"
-            onfocus="showChargeDD('sea-cd-${i}',this.value,${i},'sea')"
+            oninput="seaRows[${i}].desc=this.value;showChargeDD(this,this.value,${i},'sea');update()"
+            onfocus="showChargeDD(this,this.value,${i},'sea')"
             placeholder="e.g. Ocean Freight">
-          <div class="charge-dropdown" id="sea-cd-${i}" style="display:none"></div>
         </div>
       </td>
       <td>
@@ -976,13 +1050,11 @@ function renderSeaRows() {
   });
 }
 
-function showChargeDD(ddId, val, idx, type) {
-  const dd = document.getElementById(ddId);
-  if(!dd) return;
+function showChargeDD(inputEl, val, idx, type) {
   const cats = type === 'sea' ? SEA_CHARGES : TRUCK_CHARGES;
-  const html = buildChargeDropdown(cats, val, idx, type);
-  if(html) { dd.innerHTML = html; dd.style.display = 'block'; }
-  else { dd.style.display = 'none'; }
+  const html = buildChargeHTML(cats, val, idx, type);
+  if(html) showFloatDD(inputEl, html);
+  else hideFloatDD();
 }
 
 function addSeaRow() {
@@ -1002,10 +1074,9 @@ function renderTruckRows() {
       <td>
         <div class="charge-wrap">
           <input value="${escHtml(r.desc)}"
-            oninput="truckRows[${i}].desc=this.value;showChargeDD('truck-cd-${i}',this.value,${i},'truck');update()"
-            onfocus="showChargeDD('truck-cd-${i}',this.value,${i},'truck')"
+            oninput="truckRows[${i}].desc=this.value;showChargeDD(this,this.value,${i},'truck');update()"
+            onfocus="showChargeDD(this,this.value,${i},'truck')"
             placeholder="e.g. Origin Trucking">
-          <div class="charge-dropdown" id="truck-cd-${i}" style="display:none"></div>
         </div>
       </td>
       <td>
