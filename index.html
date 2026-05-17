@@ -707,14 +707,19 @@ function loadDraft() {
 }
 
 function login() {
-  const email = document.getElementById('login-email').value;
+  const validUsers = ['Samar', 'Zeyad', 'Merna'];
+  const validPassword = 'Mlog@1234';
+  const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
 
-  if(email && password) {
+  if (validUsers.includes(username) && password === validPassword) {
     localStorage.setItem('loggedIn', 'true');
+    localStorage.setItem('loggedInUser', username);
     document.getElementById('login-screen').style.display = 'none';
+    errEl.style.display = 'none';
   } else {
-    alert('Please enter email and password');
+    errEl.style.display = 'block';
   }
 }
 
@@ -754,8 +759,9 @@ window.addEventListener('load', () => {
 <div id="login-screen">
   <div class="login-card">
     <h2>M Logistics Team Login</h2>
-    <input type="email" id="login-email" placeholder="Team Email">
+    <input type="text" id="login-username" placeholder="Username">
     <input type="password" id="login-password" placeholder="Password">
+    <p id="login-error" style="color:#e84c3d;font-size:13px;margin-bottom:10px;display:none;">Invalid username or password.</p>
     <button onclick="login()">Login</button>
   </div>
 </div>
@@ -1113,14 +1119,7 @@ function toggleContainer(btn) {
 // ── SEA FREIGHT ROWS ──
 let seaRows = [];
 function initSeaRows() {
-  seaRows = [
-    { desc: 'Ocean Freight', basis: 'Per 20\'DV', rate: '2200', currency: 'USD', notes: '' },
-    { desc: 'Ocean Freight', basis: 'Per 40\'HQ', rate: '2800', currency: 'USD', notes: '' },
-    { desc: 'OTHC', basis: 'Per container 20\'DV', rate: '180', currency: 'USD', notes: '' },
-    { desc: 'OTHC', basis: 'Per container 40\'HQ', rate: '260', currency: 'USD', notes: '' },
-    { desc: 'B/L', basis: 'Per Container', rate: '25', currency: 'USD', notes: '' },
-    { desc: 'Telex', basis: 'Per Shipment', rate: '400', currency: 'EGP', notes: '' },
-  ];
+  seaRows = [];
   renderSeaRows();
 }
 
@@ -1156,10 +1155,7 @@ function addSeaRow() {
 // ── TRUCKING ROWS ──
 let truckRows = [];
 function initTruckRows() {
-  truckRows = [
-    { desc: 'Trucking 20DV', container: '20DV', rate: '20000', currency: 'EGP', notes: '' },
-    { desc: 'Trucking 40HQ', container: '40HQ', rate: '22600', currency: 'EGP', notes: '' },
-  ];
+  truckRows = [];
   renderTruckRows();
 }
 
@@ -1504,14 +1500,19 @@ function loadDraft() {
 }
 
 function login() {
-  const email = document.getElementById('login-email').value;
+  const validUsers = ['Samar', 'Zeyad', 'Merna'];
+  const validPassword = 'Mlog@1234';
+  const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
 
-  if(email && password) {
+  if (validUsers.includes(username) && password === validPassword) {
     localStorage.setItem('loggedIn', 'true');
+    localStorage.setItem('loggedInUser', username);
     document.getElementById('login-screen').style.display = 'none';
+    errEl.style.display = 'none';
   } else {
-    alert('Please enter email and password');
+    errEl.style.display = 'block';
   }
 }
 
