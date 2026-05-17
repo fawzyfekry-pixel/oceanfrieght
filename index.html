@@ -708,7 +708,7 @@ function loadDraft() {
 
 function login() {
   const validUsers = ['Samar', 'Zeyad', 'Merna'];
-  const validPassword = 'Mlog';
+  const validPassword = '1234';
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
@@ -1130,7 +1130,45 @@ function renderSeaRows() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input value="${r.desc}" onchange="seaRows[${i}].desc=this.value;update()" placeholder="e.g. Ocean Freight"></td>
-      <td><input value="${r.basis}" onchange="seaRows[${i}].basis=this.value;update()" placeholder="e.g. Per 20'DV"></td>
+      <td>
+        <select onchange="seaRows[${i}].basis=this.value;update()" style="font-size:12px;">
+          <option value="" ${r.basis===''?'selected':''}>Select basis...</option>
+          <optgroup label="── Dry Standard ──">
+            <option value="Per 20\'DV" ${r.basis==='Per 20\'DV'?'selected':''}>Per 20' DV — Dry Van</option>
+            <option value="Per 40\'DV" ${r.basis==='Per 40\'DV'?'selected':''}>Per 40' DV — Dry Van</option>
+            <option value="Per 45\'DV" ${r.basis==='Per 45\'DV'?'selected':''}>Per 45' DV — Dry Van</option>
+          </optgroup>
+          <optgroup label="── High Cube ──">
+            <option value="Per 40\'HC" ${r.basis==='Per 40\'HC'?'selected':''}>Per 40' HC — High Cube</option>
+            <option value="Per 45\'HC" ${r.basis==='Per 45\'HC'?'selected':''}>Per 45' HC — High Cube</option>
+          </optgroup>
+          <optgroup label="── Reefer ──">
+            <option value="Per 20\'RF" ${r.basis==='Per 20\'RF'?'selected':''}>Per 20' RF — Reefer</option>
+            <option value="Per 40\'RF" ${r.basis==='Per 40\'RF'?'selected':''}>Per 40' RF — Reefer</option>
+            <option value="Per 40\'RF HC" ${r.basis==='Per 40\'RF HC'?'selected':''}>Per 40' RF HC — Reefer High Cube</option>
+          </optgroup>
+          <optgroup label="── Open Top ──">
+            <option value="Per 20\'OT" ${r.basis==='Per 20\'OT'?'selected':''}>Per 20' OT — Open Top</option>
+            <option value="Per 40\'OT" ${r.basis==='Per 40\'OT'?'selected':''}>Per 40' OT — Open Top</option>
+          </optgroup>
+          <optgroup label="── Flat Rack ──">
+            <option value="Per 20\'FR" ${r.basis==='Per 20\'FR'?'selected':''}>Per 20' FR — Flat Rack</option>
+            <option value="Per 40\'FR" ${r.basis==='Per 40\'FR'?'selected':''}>Per 40' FR — Flat Rack</option>
+          </optgroup>
+          <optgroup label="── Tank ──">
+            <option value="Per 20\'TK" ${r.basis==='Per 20\'TK'?'selected':''}>Per 20' TK — Tank</option>
+            <option value="Per 40\'TK" ${r.basis==='Per 40\'TK'?'selected':''}>Per 40' TK — Tank</option>
+          </optgroup>
+          <optgroup label="── Per Shipment ──">
+            <option value="Per Shipment" ${r.basis==='Per Shipment'?'selected':''}>Per Shipment</option>
+            <option value="Per Container" ${r.basis==='Per Container'?'selected':''}>Per Container</option>
+            <option value="Per B/L" ${r.basis==='Per B/L'?'selected':''}>Per B/L</option>
+            <option value="Per CBM" ${r.basis==='Per CBM'?'selected':''}>Per CBM (LCL)</option>
+            <option value="Per Ton" ${r.basis==='Per Ton'?'selected':''}>Per Ton</option>
+            <option value="Per W/M" ${r.basis==='Per W/M'?'selected':''}>Per W/M (Weight or Measure)</option>
+          </optgroup>
+        </select>
+      </td>
       <td><input value="${r.rate}" onchange="seaRows[${i}].rate=this.value;update()" type="number" style="width:90px"></td>
       <td>
         <select onchange="seaRows[${i}].currency=this.value;update()">
@@ -1166,7 +1204,42 @@ function renderTruckRows() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input value="${r.desc}" onchange="truckRows[${i}].desc=this.value;update()" placeholder="e.g. Trucking 20DV"></td>
-      <td><input value="${r.container}" onchange="truckRows[${i}].container=this.value;update()" placeholder="20DV"></td>
+      <td>
+        <select onchange="truckRows[${i}].container=this.value;update()" style="font-size:12px;">
+          <option value="" ${r.container===''?'selected':''}>Select type...</option>
+          <optgroup label="── Dry Standard ──">
+            <option value="20DV" ${r.container==='20DV'?'selected':''}>20' DV — Dry Van</option>
+            <option value="40DV" ${r.container==='40DV'?'selected':''}>40' DV — Dry Van</option>
+            <option value="45DV" ${r.container==='45DV'?'selected':''}>45' DV — Dry Van</option>
+          </optgroup>
+          <optgroup label="── High Cube ──">
+            <option value="40HC" ${r.container==='40HC'?'selected':''}>40' HC — High Cube</option>
+            <option value="45HC" ${r.container==='45HC'?'selected':''}>45' HC — High Cube</option>
+          </optgroup>
+          <optgroup label="── Reefer ──">
+            <option value="20RF" ${r.container==='20RF'?'selected':''}>20' RF — Reefer</option>
+            <option value="40RF" ${r.container==='40RF'?'selected':''}>40' RF — Reefer</option>
+            <option value="40RFHC" ${r.container==='40RFHC'?'selected':''}>40' RF HC — Reefer High Cube</option>
+          </optgroup>
+          <optgroup label="── Open Top ──">
+            <option value="20OT" ${r.container==='20OT'?'selected':''}>20' OT — Open Top</option>
+            <option value="40OT" ${r.container==='40OT'?'selected':''}>40' OT — Open Top</option>
+          </optgroup>
+          <optgroup label="── Flat Rack ──">
+            <option value="20FR" ${r.container==='20FR'?'selected':''}>20' FR — Flat Rack</option>
+            <option value="40FR" ${r.container==='40FR'?'selected':''}>40' FR — Flat Rack</option>
+          </optgroup>
+          <optgroup label="── Tank ──">
+            <option value="20TK" ${r.container==='20TK'?'selected':''}>20' TK — Tank</option>
+            <option value="40TK" ${r.container==='40TK'?'selected':''}>40' TK — Tank</option>
+          </optgroup>
+          <optgroup label="── Special ──">
+            <option value="20ISO" ${r.container==='20ISO'?'selected':''}>20' ISO Tank</option>
+            <option value="LCL" ${r.container==='LCL'?'selected':''}>LCL — Less than Container Load</option>
+            <option value="BULK" ${r.container==='BULK'?'selected':''}>Bulk / Break Bulk</option>
+          </optgroup>
+        </select>
+      </td>
       <td><input value="${r.rate}" onchange="truckRows[${i}].rate=this.value;update()" type="number"></td>
       <td>
         <select onchange="truckRows[${i}].currency=this.value;update()">
@@ -1501,7 +1574,7 @@ function loadDraft() {
 
 function login() {
   const validUsers = ['Samar', 'Zeyad', 'Merna'];
-  const validPassword = 'Mlog';
+  const validPassword = '1234';
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
